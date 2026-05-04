@@ -3,24 +3,28 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-COPY SimpleApi.sln ./
-COPY SimpleApi/SimpleApi.csproj SimpleApi/
-COPY SimpleApi.Application/SimpleApi.Application.csproj SimpleApi.Application/
-COPY SimpleApi.Domain/SimpleApi.Domain.csproj SimpleApi.Domain/
-COPY SimpleApi.Infrastructure/SimpleApi.Infrastructure.csproj SimpleApi.Infrastructure/
+COPY TelegramStorage.sln ./
+COPY TelegramStorage/TelegramStorage.csproj TelegramStorage/
+COPY TelegramStorage.Application/TelegramStorage.Application.csproj TelegramStorage.Application/
+COPY TelegramStorage.Domain/TelegramStorage.Domain.csproj TelegramStorage.Domain/
+COPY TelegramStorage.Infrastructure/TelegramStorage.Infrastructure.csproj TelegramStorage.Infrastructure/
 
-RUN dotnet restore SimpleApi/SimpleApi.csproj
+RUN dotnet restore TelegramStorage/TelegramStorage.csproj
 
-COPY SimpleApi/ SimpleApi/
-COPY SimpleApi.Application/ SimpleApi.Application/
-COPY SimpleApi.Domain/ SimpleApi.Domain/
-COPY SimpleApi.Infrastructure/ SimpleApi.Infrastructure/
+COPY TelegramStorage/ TelegramStorage/
+COPY TelegramStorage.Application/ TelegramStorage.Application/
+COPY TelegramStorage.Domain/ TelegramStorage.Domain/
+COPY TelegramStorage.Infrastructure/ TelegramStorage.Infrastructure/
 
-RUN dotnet publish SimpleApi/SimpleApi.csproj -c Release -o /app/publish --no-restore
+RUN dotnet publish TelegramStorage/TelegramStorage.csproj -c Release -o /app/publish --no-restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ffmpeg python3 python3-pip ca-certificates \
+  && pip3 install --no-cache-dir --break-system-packages yt-dlp \
+  && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
 COPY --from=build /app/publish .
-ENTRYPOINT ["dotnet", "SimpleApi.dll"]
+ENTRYPOINT ["dotnet", "TelegramStorage.dll"]

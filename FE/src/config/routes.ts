@@ -21,10 +21,8 @@ export const clientRoutes = {
 /** Admin console paths (all prefixed with /admin) */
 export const adminRoutes = {
   home: adminRoot,
-  orders: `${adminRoot}/orders`,
-  products: `${adminRoot}/products`,
   users: `${adminRoot}/users`,
-  settings: `${adminRoot}/settings`,
+  cloud: `${adminRoot}/cloud`,
 } as const;
 
 export type ClientRouteKey = keyof typeof clientRoutes;

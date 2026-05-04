@@ -1,0 +1,6 @@
+﻿@TelegramStorage_HostAddress = http://localhost:8080
+
+### Swagger
+GET {{TelegramStorage_HostAddress}}/swagger/index.html
+
+###

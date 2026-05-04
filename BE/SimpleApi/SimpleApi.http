@@ -1,6 +1,0 @@
-@SimpleApi_HostAddress = http://localhost:8080
-
-### Swagger
-GET {{SimpleApi_HostAddress}}/swagger/index.html
-
-###

@@ -1,12 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import {
-  ClipboardList,
-  LayoutDashboard,
-  Package,
-  Settings,
-  ShoppingCart,
-  Users,
-} from "lucide-react";
+import { Cloud, Users } from "lucide-react";
 import { adminRoutes } from "@/config/routes";
 
 /**
@@ -21,7 +14,7 @@ export type AdminNavItem = {
   label: string;
   href?: string;
   icon: LucideIcon;
-  /** Key quyền (VD: `orders.read`). Không gán = không kiểm tra */
+  /** Key quyền (VD: `users.read`). Không gán = không kiểm tra */
   permissions?: readonly string[];
   children?: AdminNavItem[];
 };
@@ -78,45 +71,17 @@ export function isAdminNavBranchActive(
 /** Cấu hình menu — nguồn duy nhất cho sidebar admin */
 export const adminNavTree: AdminNavItem[] = [
   {
-    id: "dashboard",
-    label: "Tổng quan",
-    href: adminRoutes.home,
-    icon: LayoutDashboard,
-    permissions: ["dashboard.view"],
+    id: "users",
+    label: "Người dùng",
+    href: adminRoutes.users,
+    icon: Users,
+    permissions: ["users.read"],
   },
   {
-    id: "commerce",
-    label: "Bán hàng",
-    icon: ShoppingCart,
-    children: [
-      {
-        id: "orders",
-        label: "Đơn hàng",
-        href: adminRoutes.orders,
-        icon: ClipboardList,
-        permissions: ["orders.read"],
-      },
-      {
-        id: "products",
-        label: "Sản phẩm",
-        href: adminRoutes.products,
-        icon: Package,
-        permissions: ["products.read"],
-      },
-      {
-        id: "users",
-        label: "Người dùng",
-        href: adminRoutes.users,
-        icon: Users,
-        permissions: ["users.read"],
-      },
-    ],
-  },
-  {
-    id: "settings",
-    label: "Cài đặt",
-    href: adminRoutes.settings,
-    icon: Settings,
-    permissions: ["settings.read"],
+    id: "cloud",
+    label: "Lưu trữ cloud",
+    href: adminRoutes.cloud,
+    icon: Cloud,
+    permissions: ["users.read"],
   },
 ];

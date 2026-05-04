@@ -1,4 +1,4 @@
-services:
+﻿services:
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
@@ -18,4 +18,4 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=SimpleApiDb;User Id=sa;Password=Passw0rd!123;TrustServerCertificate=True;MultipleActiveResultSets=true"
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=TelegramStorageDb;User Id=sa;Password=Passw0rd!123;TrustServerCertificate=True;MultipleActiveResultSets=true"
