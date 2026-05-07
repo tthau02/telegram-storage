@@ -1,7 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link2, Play, Trash2, Upload } from "lucide-react";
+import {
+  File,
+  FileImage,
+  FileVideo,
+  Link2,
+  Play,
+  Trash2,
+  Upload,
+} from "lucide-react";
 
 import {
   CommonHeader,
@@ -21,6 +29,7 @@ import {
 } from "@/hooks/api";
 import { FixedBottomLoadProgress } from "@/components/shared/load-progress";
 import { ApiError } from "@/lib/api-client";
+import { cloudStorageService } from "@/services/cloud-storage-service";
 import type {
   CloudFileDto,
   CloudFileSearchParams,
@@ -58,6 +67,103 @@ function parseOptionalLong(v: unknown): number | undefined {
   if (v === "" || v == null) return undefined;
   const n = typeof v === "number" ? v : Number(String(v).trim());
   return Number.isFinite(n) ? Math.trunc(n) : undefined;
+}
+
+function fileKind(mime: string): "image" | "video" | "pdf" | "other" {
+  const m = mime.toLowerCase();
+  if (m.startsWith("image/")) return "image";
+  if (m.startsWith("video/")) return "video";
+  if (m === "application/pdf") return "pdf";
+  return "other";
+}
+
+function fileExtensionLabel(fileName: string): string {
+  const dot = fileName.lastIndexOf(".");
+  if (dot < 0 || dot === fileName.length - 1) return "FILE";
+  return fileName
+    .slice(dot + 1)
+    .toUpperCase()
+    .slice(0, 6);
+}
+
+function ThumbnailCell({ row, token }: { row: CloudFileRow; token?: string }) {
+  const kind = fileKind(row.mimeType);
+  const [thumbnailBlobUrl, setThumbnailBlobUrl] = useState<string | null>(null);
+  const [useExtensionTile, setUseExtensionTile] = useState(false);
+
+  useEffect(() => {
+    if (!token || !row.thumbnailFileId) {
+      setThumbnailBlobUrl(null);
+      setUseExtensionTile(false);
+      return;
+    }
+
+    const ac = new AbortController();
+    let localUrl: string | null = null;
+    (async () => {
+      try {
+        const blob = await cloudStorageService.fetchThumbnailBlob(
+          row.id,
+          token,
+        );
+        if (ac.signal.aborted) return;
+        // Ảnh fallback mặc định hiện rất nhỏ (~700 bytes); hiển thị tile theo đuôi file thay vì ảnh mẫu.
+        if (blob.size > 0 && blob.size < 2000) {
+          setUseExtensionTile(true);
+          setThumbnailBlobUrl(null);
+          return;
+        }
+        setUseExtensionTile(false);
+        localUrl = URL.createObjectURL(blob);
+        if (!ac.signal.aborted) {
+          setThumbnailBlobUrl(localUrl);
+        } else {
+          URL.revokeObjectURL(localUrl);
+        }
+      } catch {
+        setUseExtensionTile(false);
+        setThumbnailBlobUrl(null);
+      }
+    })();
+
+    return () => {
+      ac.abort();
+      if (localUrl) URL.revokeObjectURL(localUrl);
+    };
+  }, [row.id, row.thumbnailFileId, token]);
+
+  return (
+    <div className="flex items-center gap-3">
+      <div className="relative h-12 w-20 overflow-hidden rounded-md border border-border bg-muted/40">
+        {thumbnailBlobUrl ? (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element -- blob URL được tạo từ API có auth */}
+            <img
+              src={thumbnailBlobUrl}
+              alt={`Thumbnail ${row.fileName}`}
+              className="h-full w-full object-cover"
+            />
+          </>
+        ) : useExtensionTile ? (
+          <div className="flex h-full w-full flex-col items-center justify-center bg-muted text-[10px] font-semibold tracking-wide text-black">
+            <File className="mb-0.5 size-3.5" aria-hidden />
+            <span>{fileExtensionLabel(row.fileName)}</span>
+          </div>
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+            {kind === "image" ? (
+              <FileImage className="size-5" aria-hidden />
+            ) : kind === "video" ? (
+              <FileVideo className="size-5" aria-hidden />
+            ) : (
+              <File className="size-5" aria-hidden />
+            )}
+          </div>
+        )}
+      </div>
+      <span className="line-clamp-2">{row.fileName}</span>
+    </div>
+  );
 }
 
 export default function AdminCloudPage() {
@@ -132,7 +238,13 @@ export default function AdminCloudPage() {
   };
 
   const columns: CommonTableColumn<CloudFileRow>[] = [
-    { id: "fileName", label: "Tên file", type: "text", sortable: true },
+    {
+      id: "fileName",
+      label: "Tệp",
+      type: "text",
+      sortable: true,
+      renderCell: (row) => <ThumbnailCell row={row} token={token} />,
+    },
     { id: "createdAt", label: "Ngày upload", type: "datetime", sortable: true },
     { id: "mimeType", label: "Kiểu file", type: "text", sortable: true },
     {
@@ -162,12 +274,12 @@ export default function AdminCloudPage() {
 
   const pageHeader: CommonHeaderProps = useMemo(
     () => ({
-      title: "Lưu trữ cloud",
-      subtitle: "danh sách",
+      title: "Kho file Telegram",
+      subtitle: "file đã lưu trên Telegram",
       actions: [
         {
           id: "upload",
-          label: uploadMutation.isPending ? "Đang tải…" : "Upload",
+          label: uploadMutation.isPending ? "Đang tải lên…" : "Tải lên",
           icon: <Upload className="size-3.5" aria-hidden />,
           variant: "outline",
           disabled: uploadMutation.isPending,
@@ -175,7 +287,7 @@ export default function AdminCloudPage() {
         },
         {
           id: "mirror",
-          label: "Mirror URL",
+          label: "Lấy từ URL",
           icon: <Link2 className="size-3.5" aria-hidden />,
           variant: "outline",
           onClick: () => setMirrorOpen(true),
@@ -212,7 +324,7 @@ export default function AdminCloudPage() {
 
   useEffect(() => {
     if (!loadError) return;
-    toast.error("Không tải được danh sách cloud", {
+    toast.error("Không tải được danh sách file", {
       id: "admin-cloud-load-error",
       description: loadError,
       duration: 10_000,
@@ -239,12 +351,12 @@ export default function AdminCloudPage() {
       {
         onSettled: () => setUploadPercent(null),
         onSuccess: (dto) => {
-          toast.success("Đã upload", { description: dto.fileName });
+          toast.success("Đã tải lên", { description: dto.fileName });
         },
         onError: (err) => {
           const message =
-            err instanceof ApiError ? err.message : "Upload thất bại.";
-          toast.error("Upload thất bại", { description: message });
+            err instanceof ApiError ? err.message : "Tải lên thất bại.";
+          toast.error("Tải lên thất bại", { description: message });
         },
       },
     );
@@ -325,10 +437,10 @@ export default function AdminCloudPage() {
         onOpenChange={(open) => !open && setPendingDelete(null)}
       >
         <AlertDialogContent>
-          <AlertDialogTitle>Xóa khỏi cloud?</AlertDialogTitle>
+          <AlertDialogTitle>Xóa file khỏi kho?</AlertDialogTitle>
           <AlertDialogDescription>
-            Bạn có chắc chắn muốn xóa tệp{" "}
-            <strong>{pendingDelete?.fileName}</strong> khỏi cloud?
+            Bạn có chắc muốn xóa tệp <strong>{pendingDelete?.fileName}</strong>{" "}
+            khỏi kho?
           </AlertDialogDescription>
           <AlertDialogFooter>
             <AlertDialogCancel>Huỷ</AlertDialogCancel>

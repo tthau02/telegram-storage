@@ -104,7 +104,7 @@ export async function apiFetch<T>(
     const envelope = payload as ApiEnvelope<T>;
     if (!envelope.success) {
       throw new ApiError(
-        envelope.message ?? "Yeu cau that bai.",
+        envelope.message ?? "Yêu cầu không thành công.",
         envelope.statusCode,
         envelope.errors ?? undefined,
       );
@@ -183,7 +183,7 @@ export function apiUploadFormDataNdjson<T>(
         }
 
         if (ev.stage === "error") {
-          throw new ApiError(ev.message ?? "Upload thất bại.", 400);
+          throw new ApiError(ev.message ?? "Tải lên thất bại.", 400);
         }
       }
     };

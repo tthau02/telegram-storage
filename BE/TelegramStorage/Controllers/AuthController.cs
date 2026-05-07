@@ -34,4 +34,11 @@ public sealed class AuthController : BaseController
         var result = await _users.LoginAsync(request, cancellationToken);
         return OkResponse(result);
     }
+    
+    [HttpPost("logout")]
+    [Authorize]
+    public ActionResult<ApiResponse<object?>> Logout()
+    {
+        return NoContentResponse("Đã đăng xuất.");
+    }
 }

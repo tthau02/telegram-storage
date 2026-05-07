@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useId, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Bell,
   ChevronDown,
@@ -14,6 +16,13 @@ import {
 
 import { useAppTheme } from "@/store/hooks";
 import { Switch } from "@/components/ui/switch";
+import { branding } from "@/config/branding";
+import { clientRoutes } from "@/config/routes";
+import { authService } from "@/services/auth-service";
+import {
+  clearAuthStorage,
+  getStoredAccessToken,
+} from "@/lib/auth-storage";
 import { cn } from "@/lib/utils";
 
 const menuItemClass =
@@ -46,13 +55,52 @@ function AdminThemeToggle() {
 }
 
 export function AdminHeader() {
+  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuPortalRef = useRef<HTMLDivElement>(null);
+  const [menuPlacement, setMenuPlacement] = useState<{
+    top: number;
+    right: number;
+  } | null>(null);
   const menuId = useId();
+
+  const updateMenuPlacement = useCallback(() => {
+    if (!triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    setMenuPlacement({
+      top: rect.bottom + 8,
+      right: window.innerWidth - rect.right,
+    });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!menuOpen) {
+      setMenuPlacement(null);
+      return;
+    }
+    updateMenuPlacement();
+  }, [menuOpen, updateMenuPlacement]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onScrollOrResize = () => updateMenuPlacement();
+    window.addEventListener("resize", onScrollOrResize);
+    window.addEventListener("scroll", onScrollOrResize, true);
+    return () => {
+      window.removeEventListener("resize", onScrollOrResize);
+      window.removeEventListener("scroll", onScrollOrResize, true);
+    };
+  }, [menuOpen, updateMenuPlacement]);
 
   useEffect(() => {
     function handlePointer(e: MouseEvent) {
-      if (!wrapRef.current?.contains(e.target as Node)) setMenuOpen(false);
+      const t = e.target as Node;
+      if (wrapRef.current?.contains(t) || menuPortalRef.current?.contains(t)) {
+        return;
+      }
+      setMenuOpen(false);
     }
     function handleKey(e: KeyboardEvent) {
       if (e.key === "Escape") setMenuOpen(false);
@@ -65,12 +113,26 @@ export function AdminHeader() {
     };
   }, []);
 
+  async function handleLogout() {
+    setMenuOpen(false);
+    const token = getStoredAccessToken();
+    if (token) {
+      try {
+        await authService.logout(token);
+      } catch {
+        /* vẫn xóa phiên cục bộ */
+      }
+    }
+    clearAuthStorage();
+    router.replace(clientRoutes.login);
+  }
+
   return (
-    <header className="sticky top-0 z-30 flex h-16 w-full shrink-0 items-center border-b border-border bg-card px-4 md:px-6">
+    <header className="sticky top-0 z-40 flex h-16 w-full shrink-0 items-center border-b border-border bg-card px-4 md:px-6">
       <div className="flex w-full items-center justify-between gap-4">
         <div className="min-w-0">
           <h1 className="text-base font-semibold tracking-tight text-foreground md:text-lg">
-            Tổng quan
+            Bảng điều khiển
           </h1>
         </div>
 
@@ -92,6 +154,7 @@ export function AdminHeader() {
 
           <div className="relative" ref={wrapRef}>
             <button
+              ref={triggerRef}
               type="button"
               id={`${menuId}-trigger`}
               aria-haspopup="menu"
@@ -107,10 +170,10 @@ export function AdminHeader() {
                 className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand-house text-[10px] font-bold text-(--text-on-dark) shadow-sm"
                 aria-hidden
               >
-                TH
+                QT
               </div>
               <span className="hidden max-w-[100px] truncate text-sm font-medium tracking-tight text-foreground lg:inline">
-                Trần Hậu
+                Quản trị viên
               </span>
               <ChevronDown
                 className={cn(
@@ -121,60 +184,72 @@ export function AdminHeader() {
               />
             </button>
 
-            {menuOpen ? (
-              <div
-                id={`${menuId}-menu`}
-                role="menu"
-                aria-labelledby={`${menuId}-trigger`}
-                className="absolute top-full right-0 z-50 mt-2 min-w-[200px] origin-top-right rounded-xl border border-border bg-popover p-1.5 text-popover-foreground shadow-lg animate-in fade-in zoom-in-95 duration-100 dark:shadow-black/40"
-              >
-                <div className="mb-1 border-b border-border px-3 py-2 lg:hidden">
-                  <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                    Tài khoản
-                  </p>
-                  <p className="truncate text-sm font-medium text-foreground">
-                    Trần Hậu
-                  </p>
-                </div>
+            {menuOpen && menuPlacement && typeof document !== "undefined"
+              ? createPortal(
+                  <div
+                    ref={menuPortalRef}
+                    id={`${menuId}-menu`}
+                    role="menu"
+                    aria-labelledby={`${menuId}-trigger`}
+                    style={{
+                      position: "fixed",
+                      top: menuPlacement.top,
+                      right: menuPlacement.right,
+                    }}
+                    className="z-99999 min-w-[200px] origin-top-right rounded-xl border border-border bg-popover p-1.5 text-popover-foreground shadow-lg animate-in fade-in zoom-in-95 duration-100 dark:shadow-black/40"
+                  >
+                    <div className="mb-1 border-b border-border px-3 py-2 lg:hidden">
+                      <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                        Tài khoản
+                      </p>
+                      <p className="truncate text-sm font-medium text-foreground">
+                        Quản trị viên
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {branding.appNameShort}
+                      </p>
+                    </div>
 
-                <Link
-                  href="#"
-                  role="menuitem"
-                  className={menuItemClass}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  <User className="size-4 shrink-0 opacity-70" aria-hidden />
-                  Hồ sơ cá nhân
-                </Link>
-                <Link
-                  href="#"
-                  role="menuitem"
-                  className={menuItemClass}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  <Settings
-                    className="size-4 shrink-0 opacity-70"
-                    aria-hidden
-                  />
-                  Cài đặt hệ thống
-                </Link>
+                    <Link
+                      href="#"
+                      role="menuitem"
+                      className={menuItemClass}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      <User className="size-4 shrink-0 opacity-70" aria-hidden />
+                      Hồ sơ cá nhân
+                    </Link>
+                    <Link
+                      href="#"
+                      role="menuitem"
+                      className={menuItemClass}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      <Settings
+                        className="size-4 shrink-0 opacity-70"
+                        aria-hidden
+                      />
+                      Cài đặt hệ thống
+                    </Link>
 
-                <div className="my-1.5 h-px bg-border" role="separator" />
+                    <div className="my-1.5 h-px bg-border" role="separator" />
 
-                <button
-                  type="button"
-                  role="menuitem"
-                  className={cn(
-                    menuItemClass,
-                    "text-destructive hover:bg-destructive/10 hover:text-destructive",
-                  )}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  <LogOut className="size-4 shrink-0" aria-hidden />
-                  Đăng xuất
-                </button>
-              </div>
-            ) : null}
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className={cn(
+                        menuItemClass,
+                        "text-destructive hover:bg-destructive/10 hover:text-destructive",
+                      )}
+                      onClick={() => void handleLogout()}
+                    >
+                      <LogOut className="size-4 shrink-0" aria-hidden />
+                      Đăng xuất
+                    </button>
+                  </div>,
+                  document.body,
+                )
+              : null}
           </div>
         </div>
       </div>

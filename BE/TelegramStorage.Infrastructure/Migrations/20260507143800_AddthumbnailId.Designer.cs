@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TelegramStorage.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using TelegramStorage.Infrastructure.Data;
 namespace TelegramStorage.Infrastructure.Migrations
 {
     [DbContext(typeof(TelegramStorageDbContext))]
-    partial class TelegramStorageDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260507143800_AddthumbnailId")]
+    partial class AddthumbnailId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

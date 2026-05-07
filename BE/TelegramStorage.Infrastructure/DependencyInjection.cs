@@ -32,6 +32,7 @@ public static class DependencyInjection
         services.AddSingleton<TelegramMtProtoExecutor>();
         services.AddSingleton<ITelegramGatewayService, TelegramGatewayService>();
         services.AddSingleton<IRemoteMediaPullService, RemoteMediaPullService>();
+        services.AddSingleton<IThumbnailService, ThumbnailService>();
         services.AddScoped<ICloudStorageService, CloudStorageService>();
 
         services.AddDbContext<TelegramStorageDbContext>((sp, options) =>

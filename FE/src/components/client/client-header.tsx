@@ -1,11 +1,11 @@
 import Link from "next/link";
+import { branding } from "@/config/branding";
 import { adminRoutes, clientRoutes } from "@/config/routes";
 
 const navLinks = [
-  { href: clientRoutes.home, label: "Trang chủ" },
-  { href: "#", label: "Menu" },
-  { href: "#", label: "Rewards" },
-  { href: "#", label: "Thẻ quà tặng" },
+  { href: clientRoutes.home, label: "Bảng điều khiển" },
+  { href: adminRoutes.cloud, label: "Kho file" },
+  { href: adminRoutes.users, label: "Người dùng" },
 ] as const;
 
 export function ClientHeader() {
@@ -17,7 +17,7 @@ export function ClientHeader() {
             href={clientRoutes.home}
             className="shrink-0 text-lg font-semibold tracking-[-0.01em] text-[var(--brand-heading)] md:text-xl"
           >
-            Café
+            {branding.appNameShort}
           </Link>
           <nav className="hidden items-center gap-6 md:flex" aria-label="Chính">
             {navLinks.map((item) => (
@@ -36,7 +36,7 @@ export function ClientHeader() {
             href="#"
             className="hidden text-sm tracking-[-0.01em] text-[var(--text-primary)] underline-offset-4 hover:underline sm:inline"
           >
-            Tìm cửa hàng
+            Trợ giúp
           </Link>
           <Link
             href={clientRoutes.login}
@@ -48,13 +48,13 @@ export function ClientHeader() {
             href={clientRoutes.register}
             className="rounded-[50px] bg-black px-3 py-1.5 text-sm font-semibold tracking-[-0.01em] text-white transition-transform active:scale-[0.95] sm:px-4"
           >
-            Tham gia
+            Đăng ký
           </Link>
           <Link
             href={adminRoutes.home}
             className="ml-1 rounded-[50px] border border-[var(--brand-house)] bg-transparent px-2.5 py-1.5 text-xs font-medium tracking-[-0.01em] text-[var(--brand-house)] transition-transform active:scale-[0.95] md:px-3 md:text-sm"
           >
-            Admin
+            Quản trị
           </Link>
         </div>
       </div>

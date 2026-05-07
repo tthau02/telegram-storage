@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { clientRoutes } from "@/config/routes";
+import { branding } from "@/config/branding";
 import { useRegisterMutation } from "@/hooks/api";
 import { ApiError } from "@/lib/api-client";
 import { toast } from "sonner";
@@ -79,83 +80,87 @@ export function RegisterView() {
   };
 
   return (
-    <div className="ds-auth-view ds-auth-view-clip">
-      <p className="ds-auth-greeting">Hello,</p>
-      <h1 className="ds-auth-title">Create your account</h1>
+    <div className="ds-surface-card-elevated ds-auth-card ds-auth-card-wide">
+      <div className="ds-auth-view">
+        <p className="text-center text-[11px] font-semibold tracking-[0.08em] text-text-secondary-token uppercase">
+          {branding.appNameShort}
+        </p>
+        <p className="ds-auth-greeting mt-4 text-center sm:mt-5">Xin chào,</p>
+        <h1 className="ds-auth-title text-center">Tạo tài khoản</h1>
 
-      <form className="ds-auth-form-register" onSubmit={handleSubmit}>
-        <div className="grid min-h-0 grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
-          <Field
-            label="Username"
-            id="reg-u"
-            value={values.userName}
-            onChange={(v) => setValues((s) => ({ ...s, userName: v }))}
-            autoComplete="username"
-            placeholder="Username"
-            error={errors.userName}
-          />
-          <Field
-            label="Full name"
-            id="reg-name"
-            value={values.fullName}
-            onChange={(v) => setValues((s) => ({ ...s, fullName: v }))}
-            autoComplete="name"
-            placeholder="Full name"
-            error={errors.fullName}
-          />
-          <Field
-            label="Email"
-            id="reg-email"
-            type="email"
-            value={values.email}
-            onChange={(v) => setValues((s) => ({ ...s, email: v }))}
-            autoComplete="email"
-            placeholder="Email"
-            error={errors.email}
-          />
-          <Field
-            label="Password"
-            id="reg-pw"
-            type="password"
-            value={values.password}
-            onChange={(v) => setValues((s) => ({ ...s, password: v }))}
-            autoComplete="new-password"
-            placeholder="Password"
-            error={errors.password}
-          />
-          <div className="sm:col-span-2">
+        <form className="ds-auth-form-register" onSubmit={handleSubmit}>
+          <div className="grid min-w-0 grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
             <Field
-              label="Phone (tuỳ chọn)"
-              id="reg-phone"
-              type="tel"
-              value={values.phoneNumber}
-              onChange={(v) => setValues((s) => ({ ...s, phoneNumber: v }))}
-              autoComplete="tel"
-              placeholder="Số điện thoại"
-              error={errors.phoneNumber}
+              label="Tên đăng nhập"
+              id="reg-u"
+              value={values.userName}
+              onChange={(v) => setValues((s) => ({ ...s, userName: v }))}
+              autoComplete="username"
+              placeholder="Tên đăng nhập"
+              error={errors.userName}
             />
+            <Field
+              label="Họ và tên"
+              id="reg-name"
+              value={values.fullName}
+              onChange={(v) => setValues((s) => ({ ...s, fullName: v }))}
+              autoComplete="name"
+              placeholder="Họ và tên"
+              error={errors.fullName}
+            />
+            <Field
+              label="Email"
+              id="reg-email"
+              type="email"
+              value={values.email}
+              onChange={(v) => setValues((s) => ({ ...s, email: v }))}
+              autoComplete="email"
+              placeholder="email@domain.com"
+              error={errors.email}
+            />
+            <Field
+              label="Mật khẩu"
+              id="reg-pw"
+              type="password"
+              value={values.password}
+              onChange={(v) => setValues((s) => ({ ...s, password: v }))}
+              autoComplete="new-password"
+              placeholder="Ít nhất 6 ký tự"
+              error={errors.password}
+            />
+            <div className="sm:col-span-2">
+              <Field
+                label="Số điện thoại (tuỳ chọn)"
+                id="reg-phone"
+                type="tel"
+                value={values.phoneNumber}
+                onChange={(v) => setValues((s) => ({ ...s, phoneNumber: v }))}
+                autoComplete="tel"
+                placeholder="Số điện thoại"
+                error={errors.phoneNumber}
+              />
+            </div>
           </div>
-        </div>
 
-        <Button
-          type="submit"
-          disabled={registerMutation.isPending}
-          className="ds-btn-primary-pill"
-        >
-          {registerMutation.isPending ? "Đang xử lý…" : "Sign up"}
-        </Button>
-      </form>
+          <Button
+            type="submit"
+            disabled={registerMutation.isPending}
+            className="ds-btn-primary-pill"
+          >
+            {registerMutation.isPending ? "Đang xử lý…" : "Đăng ký"}
+          </Button>
+        </form>
 
-      <p className="ds-auth-footer mt-4">
-        Already have an account?{" "}
-        <Link href={clientRoutes.login} className="ds-link-heading">
-          Login here
-        </Link>
-      </p>
+        <p className="ds-auth-footer mt-5">
+          Đã có tài khoản?{" "}
+          <Link href={clientRoutes.login} className="ds-link-heading">
+            Đăng nhập
+          </Link>
+        </p>
 
-      <div className="ds-auth-store-row ds-auth-store-row-compact">
-        <span className="ds-store-badge">App Store</span>
-        <span className="ds-store-badge">Google Play</span>
+        <p className="mt-4 text-center text-xs leading-relaxed text-muted-foreground sm:mt-5">
+          Đăng ký để được cấp quyền truy cập {branding.appNameShort}.
+        </p>
       </div>
     </div>
   );

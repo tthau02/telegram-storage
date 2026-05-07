@@ -11,13 +11,13 @@ import {
   isAdminNavBranchActive,
   isAdminNavHrefActive,
 } from "@/config/admin-nav";
+import { branding } from "@/config/branding";
 import { clientRoutes } from "@/config/routes";
 import { Sidebar, SidebarProvider } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
 const STORAGE_COLLAPSED = "admin-sidebar-collapsed";
 
-/** DESIGN.md — expander */
 const expanderEase = "cubic-bezier(0.25, 0.46, 0.45, 0.94)";
 const expanderMs = "300ms";
 
@@ -29,13 +29,11 @@ const rowLink = cn(
   "flex min-h-10 w-full items-center gap-2 rounded-[12px] px-3 py-2 text-sm tracking-[-0.01em] transition-colors",
 );
 
-/** Mở các nhánh có route đang active (kể cả sau khi đổi URL). */
 function collectOpenIdsForPath(
   nodes: readonly AdminNavItem[],
   pathname: string,
 ): Set<string> {
   const ids = new Set<string>();
-
   function walk(items: readonly AdminNavItem[]): boolean {
     let anyActive = false;
     for (const n of items) {
@@ -53,7 +51,6 @@ function collectOpenIdsForPath(
     }
     return anyActive;
   }
-
   walk(nodes);
   return ids;
 }
@@ -184,7 +181,6 @@ function ExpandedNavRows({
         }
 
         if (!item.href) return null;
-
         const active = isAdminNavHrefActive(pathname, item.href);
         return (
           <Link
@@ -292,7 +288,8 @@ function CollapsedRail({
               title={item.label}
               className={cn(
                 "flex size-10 items-center justify-center rounded-[12px] text-[var(--text-on-dark-muted)] transition-colors hover:bg-[var(--text-on-dark)]/10 hover:text-[var(--text-on-dark)]",
-                active && "bg-[var(--text-on-dark)]/15 text-[var(--text-on-dark)]",
+                active &&
+                  "bg-[var(--text-on-dark)]/15 text-[var(--text-on-dark)]",
               )}
             >
               <item.icon className="size-5 shrink-0 opacity-95" aria-hidden />
@@ -358,7 +355,8 @@ export function AdminSidebar({ userPermissions }: AdminSidebarProps) {
         data-collapsed={collapsed ? "" : undefined}
         aria-label="Điều hướng quản trị"
         className={cn(
-          "border-r border-[var(--text-on-dark)]/12 bg-[var(--brand-house)] text-[var(--text-on-dark)] transition-[width] motion-reduce:transition-none md:flex",
+          // relative + overflow-visible để button absolute thoát ra ngoài
+          "relative overflow-visible border-r border-[var(--text-on-dark)]/12 bg-[var(--brand-house)] text-[var(--text-on-dark)] transition-[width] motion-reduce:transition-none md:flex",
           collapsed ? "w-14" : "w-full md:w-56 lg:w-64",
         )}
         style={{
@@ -366,6 +364,7 @@ export function AdminSidebar({ userPermissions }: AdminSidebarProps) {
           transitionTimingFunction: expanderEase,
         }}
       >
+        {/* Header */}
         <div
           className={cn(
             "border-b border-[var(--text-on-dark)]/12 transition-[padding] motion-reduce:transition-none",
@@ -379,7 +378,7 @@ export function AdminSidebar({ userPermissions }: AdminSidebarProps) {
           {collapsed ? (
             <div className="flex justify-center" aria-hidden>
               <span className="flex size-10 items-center justify-center rounded-[12px] bg-[var(--text-on-dark)]/10 text-sm font-semibold text-[var(--text-on-dark)]">
-                C
+                {branding.collapsedMonogram}
               </span>
             </div>
           ) : (
@@ -388,12 +387,13 @@ export function AdminSidebar({ userPermissions }: AdminSidebarProps) {
                 Quản trị
               </p>
               <p className="mt-1 text-lg font-semibold tracking-[-0.01em] text-[var(--text-on-dark)]">
-                Café Admin
+                {branding.appName}
               </p>
             </>
           )}
         </div>
 
+        {/* Nav */}
         <nav
           className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden"
           aria-label="Admin"
@@ -413,40 +413,28 @@ export function AdminSidebar({ userPermissions }: AdminSidebarProps) {
           )}
         </nav>
 
-        <div className="mt-auto border-t border-[var(--text-on-dark)]/12 p-2">
-          <div
-            className={cn(
-              "flex items-center gap-2",
-              collapsed && "justify-center gap-0",
-            )}
-          >
-            {!collapsed ? (
-              <Link
-                href={clientRoutes.home}
-                className="flex min-w-0 flex-1 items-center gap-2 rounded-[12px] px-2 py-2 text-sm text-[var(--text-on-dark-muted)] transition-colors hover:bg-[var(--text-on-dark)]/10 hover:text-[var(--text-on-dark)]"
-                title="Về cửa hàng"
-              >
-                <span aria-hidden className="shrink-0 text-base">
-                  ←
-                </span>
-                <span className="truncate">Về cửa hàng</span>
-              </Link>
-            ) : null}
-            <button
-              type="button"
-              onClick={() => setCollapsed((c) => !c)}
-              className="flex size-9 shrink-0 items-center justify-center rounded-[12px] border border-[var(--text-on-dark)]/18 text-[var(--text-on-dark)] transition-colors hover:bg-[var(--text-on-dark)]/10"
-              aria-label={collapsed ? "Mở rộng sidebar" : "Thu gọn sidebar"}
-              title={collapsed ? "Mở rộng sidebar" : "Thu gọn sidebar"}
-            >
-              {collapsed ? (
-                <ChevronsRight className="size-5" strokeWidth={2} aria-hidden />
-              ) : (
-                <ChevronsLeft className="size-5" strokeWidth={2} aria-hidden />
-              )}
-            </button>
-          </div>
-        </div>
+        {/* Toggle button — floating ra ngoài cạnh phải sidebar */}
+        <button
+          type="button"
+          onClick={() => setCollapsed((c) => !c)}
+          className={cn(
+            "absolute -right-3.5 bottom-[4.5rem] z-40",
+            "flex size-7 items-center justify-center rounded-full",
+            // Nền lấy màu sidebar để "gắn" liền vào cạnh
+            "bg-[var(--brand-house)] text-[var(--text-on-dark)]",
+            // Viền + shadow để nổi bật trên content bên phải
+            "ring-1 ring-[var(--text-on-dark)]/20 shadow-md",
+            "transition-colors hover:bg-[var(--text-on-dark)]/15",
+          )}
+          aria-label={collapsed ? "Mở rộng sidebar" : "Thu gọn sidebar"}
+          title={collapsed ? "Mở rộng sidebar" : "Thu gọn sidebar"}
+        >
+          {collapsed ? (
+            <ChevronsRight className="size-3.5" strokeWidth={2.5} aria-hidden />
+          ) : (
+            <ChevronsLeft className="size-3.5" strokeWidth={2.5} aria-hidden />
+          )}
+        </button>
       </Sidebar>
     </SidebarProvider>
   );

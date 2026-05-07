@@ -12,5 +12,7 @@ public class CloudFile : BaseEntity
 
     public string MimeType { get; set; } = string.Empty;
 
+    public long? ThumbnailFileId { get; set; }
+
     public string? ThumbnailUrl { get; set; }
 }

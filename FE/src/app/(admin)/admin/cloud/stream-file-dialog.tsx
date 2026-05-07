@@ -11,9 +11,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { apiUrl } from "@/lib/api-client";
 import { LinearLoadProgress } from "@/components/shared/load-progress";
 import { cn } from "@/lib/utils";
+import { cloudStorageService } from "@/services/cloud-storage-service";
 import type { CloudFileDto } from "@/types/cloud-storage";
 
 const LARGE_BYTES = 120 * 1024 * 1024;
@@ -71,15 +71,8 @@ export function StreamFileDialog({
 
     (async () => {
       try {
-        const res = await fetch(apiUrl(`/v1/api/CloudStorage/${id}/stream`), {
-          headers: { Authorization: `Bearer ${token}` },
-          signal: ac.signal,
-        });
-        if (!res.ok) {
-          const msg = await res.text().catch(() => "");
-          throw new Error(msg || `HTTP ${res.status}`);
-        }
-        const blob = await res.blob();
+        const blob = await cloudStorageService.fetchStreamBlob(id, token);
+        if (ac.signal.aborted) return;
         const typed =
           blob.type && blob.type !== "application/octet-stream"
             ? blob
@@ -128,7 +121,7 @@ export function StreamFileDialog({
         <div className="flex shrink-0 items-center border-b border-border px-4 py-3 sm:px-6 sm:py-4">
           <DialogHeader className="w-full space-y-0 pr-8 text-left sm:pr-10">
             <DialogTitle className="line-clamp-2 text-base font-medium leading-snug">
-              {file ? file.fileName : "Phát stream"}
+              {file ? file.fileName : "Xem file"}
             </DialogTitle>
           </DialogHeader>
         </div>
@@ -215,6 +208,15 @@ export function StreamFileDialog({
                 <Download className="size-4" aria-hidden />
                 Tải xuống
               </a>
+            </div>
+          ) : file.thumbnailUrl ? (
+            <div className="flex max-h-[min(70vh,720px)] items-center justify-center overflow-auto p-2 sm:p-4">
+              {/* eslint-disable-next-line @next/next/no-img-element -- URL ảnh thumbnail do backend trả */}
+              <img
+                src={file.thumbnailUrl}
+                alt={`Thumbnail ${file.fileName}`}
+                className="max-h-[min(70vh,720px)] max-w-full object-contain"
+              />
             </div>
           ) : null}
         </div>

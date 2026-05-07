@@ -94,8 +94,10 @@ public static class ModelBuilderExtensions
             b.Property(e => e.FileHash).IsRequired().HasMaxLength(100);
             b.Property(e => e.FileSize).IsRequired();
             b.Property(e => e.MimeType).IsRequired().HasMaxLength(100);
+            b.Property(e => e.ThumbnailFileId);
             b.Property(e => e.ThumbnailUrl).HasColumnType("nvarchar(max)");
             b.HasIndex(e => e.TelegramMessageId);
+            b.HasIndex(e => e.ThumbnailFileId);
             b.HasIndex(e => e.FileHash)
                 .IsUnique()
                 .HasFilter("[IsDeleted] = 0");

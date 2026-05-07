@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { branding } from "@/config/branding";
 import { AppProviders } from "@/providers/app-providers";
 import "./globals.css";
 
@@ -10,10 +11,10 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Café — Cửa hàng",
-    template: "%s — Café",
+    default: branding.appNameShort,
+    template: `%s — ${branding.appNameShort}`,
   },
-  description: "Ứng dụng demo: khách và quản trị.",
+  description: branding.metaDescription,
 };
 
 export default function RootLayout({

@@ -56,15 +56,15 @@ export function MirrorUploadDialog({
       },
       {
         onSuccess: (dto) => {
-          toast.success("Đã mirror tệp lên cloud", {
+          toast.success("Đã thêm file từ URL", {
             description: dto.fileName,
           });
           handleClose(false);
         },
         onError: (err) => {
           const message =
-            err instanceof ApiError ? err.message : "Mirror thất bại.";
-          toast.error("Mirror thất bại", { description: message });
+            err instanceof ApiError ? err.message : "Không lấy được file từ URL.";
+          toast.error("Lấy file thất bại", { description: message });
         },
       },
     );
@@ -74,9 +74,10 @@ export function MirrorUploadDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Mirror từ URL</DialogTitle>
+          <DialogTitle>Lấy file từ URL</DialogTitle>
           <DialogDescription>
-            Backend sẽ kéo nội dung (yt-dlp / HTTP) và lưu như tệp cloud.
+            Hệ thống tải nội dung từ liên kết (HTTP, YouTube, TikTok, …) và lưu
+            vào kho Telegram.
           </DialogDescription>
         </DialogHeader>
 
@@ -120,7 +121,7 @@ export function MirrorUploadDialog({
             onClick={submit}
             disabled={mirrorMutation.isPending || !token}
           >
-            {mirrorMutation.isPending ? "Đang xử lý…" : "Mirror"}
+            {mirrorMutation.isPending ? "Đang xử lý…" : "Lấy file"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -22,4 +22,11 @@ export const authService = {
       body: payload,
     });
   },
+
+  logout(token: string): Promise<unknown> {
+    return apiFetch<unknown>(`${AUTH_BASE}/logout`, {
+      method: "POST",
+      token,
+    });
+  },
 };

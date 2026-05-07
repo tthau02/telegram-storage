@@ -71,17 +71,17 @@ export function isAdminNavBranchActive(
 /** Cấu hình menu — nguồn duy nhất cho sidebar admin */
 export const adminNavTree: AdminNavItem[] = [
   {
+    id: "cloud",
+    label: "Kho file Telegram",
+    href: adminRoutes.cloud,
+    icon: Cloud,
+    permissions: ["users.read"],
+  },
+  {
     id: "users",
     label: "Người dùng",
     href: adminRoutes.users,
     icon: Users,
-    permissions: ["users.read"],
-  },
-  {
-    id: "cloud",
-    label: "Lưu trữ cloud",
-    href: adminRoutes.cloud,
-    icon: Cloud,
     permissions: ["users.read"],
   },
 ];

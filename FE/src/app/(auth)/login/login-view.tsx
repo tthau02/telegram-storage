@@ -9,12 +9,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { clientRoutes } from "@/config/routes";
+import { branding } from "@/config/branding";
 import { useLoginMutation } from "@/hooks/api";
 import { ApiError } from "@/lib/api-client";
+import {
+  AUTH_ACCESS_TOKEN_KEY,
+  AUTH_TOKEN_EXPIRY_KEY,
+} from "@/lib/auth-storage";
 import { toast } from "sonner";
-
-const ACCESS_TOKEN_KEY = "accessToken";
-const TOKEN_EXPIRY_KEY = "tokenExpiresAtUtc";
 
 export function LoginView() {
   const router = useRouter();
@@ -45,8 +47,8 @@ export function LoginView() {
         onSuccess: (data) => {
           toast.success("Đăng nhập thành công");
           if (typeof window !== "undefined") {
-            localStorage.setItem(ACCESS_TOKEN_KEY, data.accessToken);
-            localStorage.setItem(TOKEN_EXPIRY_KEY, data.expiresAtUtc);
+            localStorage.setItem(AUTH_ACCESS_TOKEN_KEY, data.accessToken);
+            localStorage.setItem(AUTH_TOKEN_EXPIRY_KEY, data.expiresAtUtc);
           }
           setLoginVal("");
           setPassword("");
@@ -65,89 +67,89 @@ export function LoginView() {
   };
 
   return (
-    <div className="ds-auth-view">
-      <p className="ds-auth-greeting">Hello,</p>
-      <h1 className="ds-auth-title">Welcome back</h1>
+    <div className="ds-surface-card-elevated ds-auth-card">
+      <div className="ds-auth-view">
+        <p className="text-center text-[11px] font-semibold tracking-[0.08em] text-text-secondary-token uppercase">
+          {branding.appNameShort}
+        </p>
+        <p className="ds-auth-greeting mt-4 text-center sm:mt-5">Xin chào,</p>
+        <h1 className="ds-auth-title text-center">Đăng nhập</h1>
 
-      <form className="ds-auth-form-login" onSubmit={handleSubmit}>
-        <div className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="auth-login-id" className="sr-only">
-              Email hoặc tên đăng nhập
-            </Label>
-            <Input
-              id="auth-login-id"
-              autoComplete="username"
-              value={loginVal}
-              onChange={(e) => setLoginVal(e.target.value)}
-              placeholder="Username or email"
-              className="ds-auth-input"
-              aria-invalid={Boolean(fieldErrors.login)}
-            />
-            {fieldErrors.login ? (
-              <p className="ds-field-error" role="alert">
-                {fieldErrors.login}
-              </p>
-            ) : null}
+        <form className="ds-auth-form-login" onSubmit={handleSubmit}>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="auth-login-id" className="sr-only">
+                Email hoặc tên đăng nhập
+              </Label>
+              <Input
+                id="auth-login-id"
+                autoComplete="username"
+                value={loginVal}
+                onChange={(e) => setLoginVal(e.target.value)}
+                placeholder="Email hoặc tên đăng nhập"
+                className="ds-auth-input"
+                aria-invalid={Boolean(fieldErrors.login)}
+              />
+              {fieldErrors.login ? (
+                <p className="ds-field-error" role="alert">
+                  {fieldErrors.login}
+                </p>
+              ) : null}
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="auth-login-password" className="sr-only">
+                Mật khẩu
+              </Label>
+              <Input
+                id="auth-login-password"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Mật khẩu"
+                className="ds-auth-input"
+                aria-invalid={Boolean(fieldErrors.password)}
+              />
+              {fieldErrors.password ? (
+                <p className="ds-field-error" role="alert">
+                  {fieldErrors.password}
+                </p>
+              ) : null}
+            </div>
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="auth-login-password" className="sr-only">
-              Mật khẩu
-            </Label>
-            <Input
-              id="auth-login-password"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
-              className="ds-auth-input"
-              aria-invalid={Boolean(fieldErrors.password)}
-            />
-            {fieldErrors.password ? (
-              <p className="ds-field-error" role="alert">
-                {fieldErrors.password}
-              </p>
-            ) : null}
-          </div>
-        </div>
 
-        <div className="ds-auth-tools-row">
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="auth-remember"
-              checked={remember}
-              onCheckedChange={(checked) => setRemember(checked === true)}
-              className="ds-checkbox-brand"
-            />
-            <Label htmlFor="auth-remember" className="ds-auth-checkbox-label">
-              Remember me
-            </Label>
+          <div className="ds-auth-tools-row">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="auth-remember"
+                checked={remember}
+                onCheckedChange={(checked) => setRemember(checked === true)}
+                className="ds-checkbox-brand"
+              />
+              <Label htmlFor="auth-remember" className="ds-auth-checkbox-label">
+                Ghi nhớ đăng nhập
+              </Label>
+            </div>
+            <Link href="#" className="ds-link-brand shrink-0">
+              Quên mật khẩu?
+            </Link>
           </div>
-          <Link href="#" className="ds-link-brand shrink-0">
-            Forgot password?
+
+          <Button
+            type="submit"
+            disabled={loginMutation.isPending}
+            className="ds-btn-primary-pill"
+          >
+            {loginMutation.isPending ? "Đang đăng nhập…" : "Đăng nhập"}
+          </Button>
+        </form>
+
+        <p className="ds-auth-footer mt-5">
+          Chưa có tài khoản?{" "}
+          <Link href={clientRoutes.register} className="ds-link-heading">
+            Đăng ký
           </Link>
-        </div>
-
-        <Button
-          type="submit"
-          disabled={loginMutation.isPending}
-          className="ds-btn-primary-pill"
-        >
-          {loginMutation.isPending ? "Signing in…" : "Login"}
-        </Button>
-      </form>
-
-      <p className="ds-auth-footer mt-5">
-        Don&apos;t have an account?{" "}
-        <Link href={clientRoutes.register} className="ds-link-heading">
-          Sign up here
-        </Link>
-      </p>
-
-      <div className="ds-auth-store-row">
-        <span className="ds-store-badge">App Store</span>
-        <span className="ds-store-badge">Google Play</span>
+        </p>
       </div>
     </div>
   );

@@ -7,5 +7,6 @@ public class JwtOptions
     public string Key { get; set; } = string.Empty;
     public string Issuer { get; set; } = string.Empty;
     public string Audience { get; set; } = string.Empty;
-    public int AccessTokenMinutes { get; set; } = 60;
+    /// <summary>Mặc định 7 ngày khi không cấu hình trong appsettings.</summary>
+    public int AccessTokenMinutes { get; set; } = 10080;
 }

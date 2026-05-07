@@ -144,7 +144,7 @@ export const USER_FORM_ITEMS: CommonFormItem<UserFormDraft>[] = [
       {
         type: "image",
         name: "avatar",
-        label: "Avatar URL",
+        label: "Ảnh đại diện (URL)",
         rules: { maxLength: 500 },
       },
       {

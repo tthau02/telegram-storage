@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Security.Cryptography;
 using TelegramStorage.Application.Common.Models;
 using TelegramStorage.Application.Common.Paging;
 using TelegramStorage.Application.Common.Queryable;
@@ -8,7 +9,6 @@ using TelegramStorage.Application.Interfaces.Services;
 using TelegramStorage.Domain.Entities;
 using TelegramStorage.Infrastructure.Common.Query;
 using TelegramStorage.Infrastructure.Data;
-using TelegramStorage.Infrastructure.IO;
 
 namespace TelegramStorage.Infrastructure.Services;
 
@@ -17,17 +17,20 @@ public sealed class CloudStorageService : ICloudStorageService
     private readonly TelegramStorageDbContext _db;
     private readonly TelegramMtProtoExecutor _telegram;
     private readonly IRemoteMediaPullService _remoteMedia;
+    private readonly IThumbnailService _thumbnailService;
     private readonly ILogger<CloudStorageService> _logger;
 
     public CloudStorageService(
         TelegramStorageDbContext db,
         TelegramMtProtoExecutor telegram,
         IRemoteMediaPullService remoteMedia,
+        IThumbnailService thumbnailService,
         ILogger<CloudStorageService> logger)
     {
         _db = db;
         _telegram = telegram;
         _remoteMedia = remoteMedia;
+        _thumbnailService = thumbnailService;
         _logger = logger;
     }
 
@@ -100,49 +103,114 @@ public sealed class CloudStorageService : ICloudStorageService
         await _telegram.EnsureOperationalAsync(cancellationToken).ConfigureAwait(false);
 
         var mime = string.IsNullOrWhiteSpace(contentType) ? "application/octet-stream" : contentType!;
+        var tempFilePath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.upload");
+        var originalMessageId = 0;
+        var thumbnailMessageId = 0;
 
-        await using var hashing = new Sha256CalculatingStream(content, leaveInnerOpen: true);
-        var messageId = await _telegram
-            .UploadAndSendDocumentAsync(hashing, fileName, mime, telegramUploadProgress, cancellationToken)
-            .ConfigureAwait(false);
-
-        var hashHex = Convert.ToHexString(hashing.GetFinalHash()).ToLowerInvariant();
-        var size = hashing.BytesObserved;
-
-        if (size == 0 && contentLength is > 0)
+        try
         {
-            size = contentLength.Value;
-        }
+            await using (var tempWrite = File.Create(tempFilePath))
+            {
+                await content.CopyToAsync(tempWrite, cancellationToken).ConfigureAwait(false);
+            }
 
-        var duplicate = await _db.CloudFiles.AsNoTracking()
-            .FirstOrDefaultAsync(f => f.FileHash == hashHex && !f.IsDeleted, cancellationToken)
-            .ConfigureAwait(false);
+            var size = new FileInfo(tempFilePath).Length;
+            if (size == 0 && contentLength is > 0)
+            {
+                size = contentLength.Value;
+            }
 
-        if (duplicate is not null)
-        {
-            await _telegram.DeleteChannelMessagesAsync(new[] { messageId }, cancellationToken).ConfigureAwait(false);
-            await LogTrafficAsync(userId, trafficAction, size, sourceUrl, duplicate.Id, cancellationToken)
+            string hashHex;
+            await using (var hashStream = File.OpenRead(tempFilePath))
+            {
+                var hash = await SHA256.HashDataAsync(hashStream, cancellationToken).ConfigureAwait(false);
+                hashHex = Convert.ToHexString(hash).ToLowerInvariant();
+            }
+
+            var duplicate = await _db.CloudFiles.AsNoTracking()
+                .FirstOrDefaultAsync(f => f.FileHash == hashHex && !f.IsDeleted, cancellationToken)
                 .ConfigureAwait(false);
-            _logger.LogInformation("Duplicate file hash {Hash}; skipped new Telegram message {MessageId}.", hashHex, messageId);
-            return Map(duplicate);
+
+            if (duplicate is not null)
+            {
+                await LogTrafficAsync(userId, trafficAction, size, sourceUrl, duplicate.Id, cancellationToken)
+                    .ConfigureAwait(false);
+                _logger.LogInformation("Duplicate file hash {Hash}; skipped new Telegram upload.", hashHex);
+                return Map(duplicate);
+            }
+
+            await using (var originalStream = File.OpenRead(tempFilePath))
+            {
+                originalMessageId = await _telegram
+                    .UploadAndSendDocumentAsync(originalStream, fileName, mime, telegramUploadProgress, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
+            await using var thumbnail = await _thumbnailService
+                .GenerateAsync(tempFilePath, fileName, mime, cancellationToken)
+                .ConfigureAwait(false);
+            thumbnailMessageId = await _telegram
+                .UploadAndSendDocumentAsync(
+                    thumbnail.Content,
+                    thumbnail.FileName,
+                    thumbnail.MimeType,
+                    uploadProgress: null,
+                    cancellationToken)
+                .ConfigureAwait(false);
+
+            var entity = new CloudFile
+            {
+                FileName = fileName,
+                TelegramMessageId = originalMessageId,
+                FileHash = hashHex,
+                FileSize = size,
+                MimeType = mime,
+                ThumbnailFileId = thumbnailMessageId,
+                ThumbnailUrl = null,
+                IsDeleted = false,
+            };
+
+            _db.CloudFiles.Add(entity);
+            await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await LogTrafficAsync(userId, trafficAction, size, sourceUrl, entity.Id, cancellationToken).ConfigureAwait(false);
+
+            return Map(entity);
         }
-
-        var entity = new CloudFile
+        catch
         {
-            FileName = fileName,
-            TelegramMessageId = messageId,
-            FileHash = hashHex,
-            FileSize = size,
-            MimeType = mime,
-            ThumbnailUrl = null,
-            IsDeleted = false,
-        };
+            if (originalMessageId > 0)
+            {
+                try
+                {
+                    await _telegram.DeleteChannelMessagesAsync(new[] { originalMessageId }, cancellationToken).ConfigureAwait(false);
+                }
+                catch
+                {
+                    // ignored
+                }
+            }
 
-        _db.CloudFiles.Add(entity);
-        await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-        await LogTrafficAsync(userId, trafficAction, size, sourceUrl, entity.Id, cancellationToken).ConfigureAwait(false);
+            if (thumbnailMessageId > 0)
+            {
+                try
+                {
+                    await _telegram.DeleteChannelMessagesAsync(new[] { thumbnailMessageId }, cancellationToken).ConfigureAwait(false);
+                }
+                catch
+                {
+                    // ignored
+                }
+            }
 
-        return Map(entity);
+            throw;
+        }
+        finally
+        {
+            if (File.Exists(tempFilePath))
+            {
+                File.Delete(tempFilePath);
+            }
+        }
     }
 
     public async Task<CloudFileDto?> GetMetadataAsync(long id, CancellationToken cancellationToken = default)
@@ -189,8 +257,11 @@ public sealed class CloudStorageService : ICloudStorageService
         try
         {
             await _telegram.EnsureOperationalAsync(cancellationToken).ConfigureAwait(false);
+            var messageIds = entity.ThumbnailFileId is > 0
+                ? new[] { (int)entity.TelegramMessageId, (int)entity.ThumbnailFileId.Value }
+                : new[] { (int)entity.TelegramMessageId };
             await _telegram
-                .DeleteChannelMessagesAsync(new[] { (int)entity.TelegramMessageId }, cancellationToken)
+                .DeleteChannelMessagesAsync(messageIds, cancellationToken)
                 .ConfigureAwait(false);
         }
         catch (Exception ex)
@@ -289,6 +360,36 @@ public sealed class CloudStorageService : ICloudStorageService
         await LogTrafficAsync(userId, "Stream", effectiveLength, null, entity.Id, cancellationToken).ConfigureAwait(false);
     }
 
+    public async Task<bool> StreamThumbnailAsync(
+        long cloudFileId,
+        Stream destination,
+        CancellationToken cancellationToken = default)
+    {
+        var entity = await _db.CloudFiles.AsNoTracking()
+            .FirstOrDefaultAsync(f => f.Id == cloudFileId && !f.IsDeleted, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (entity is null || entity.ThumbnailFileId is not > 0)
+        {
+            return false;
+        }
+
+        await _telegram.EnsureOperationalAsync(cancellationToken).ConfigureAwait(false);
+        var (location, sourceSize) = await _telegram
+            .GetDocumentFileAsync((int)entity.ThumbnailFileId.Value, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (sourceSize <= 0)
+        {
+            return false;
+        }
+
+        await _telegram
+            .CopyFileBytesAsync(location, 0, sourceSize, destination, precise: true, cancellationToken)
+            .ConfigureAwait(false);
+        return true;
+    }
+
     private async Task LogTrafficAsync(
         long? userId,
         string action,
@@ -365,6 +466,7 @@ public sealed class CloudStorageService : ICloudStorageService
             FileHash = e.FileHash,
             FileSize = e.FileSize,
             MimeType = e.MimeType,
+            ThumbnailFileId = e.ThumbnailFileId,
             ThumbnailUrl = e.ThumbnailUrl,
             CreatedAt = e.CreatedAt,
         };

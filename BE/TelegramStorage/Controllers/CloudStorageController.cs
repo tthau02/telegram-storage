@@ -185,6 +185,20 @@ public sealed class CloudStorageController : BaseController
         return OkResponse(dto);
     }
 
+    [HttpGet("{id:long}/thumbnail")]
+    [ResponseCache(NoStore = true)]
+    public async Task<IActionResult> Thumbnail(long id, CancellationToken cancellationToken)
+    {
+        Response.ContentType = "image/png";
+        var ok = await _storage.StreamThumbnailAsync(id, Response.Body, cancellationToken).ConfigureAwait(false);
+        if (!ok)
+        {
+            return NotFound(ApiResponse.Fail("Thumbnail not found.", 404));
+        }
+
+        return new EmptyResult();
+    }
+
     [HttpDelete("{id:long}")]
     public async Task<ActionResult<ApiResponse<object?>>> Delete(long id, CancellationToken cancellationToken)
     {

@@ -1,11 +1,50 @@
 "use client";
 
 import * as React from "react";
+import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { AdminHeader } from "@/components/admin/admin-header";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
+import { clientRoutes } from "@/config/routes";
+import { getStoredAccessToken, isAuthExpired } from "@/lib/auth-storage";
 import { useAppTheme } from "@/store/hooks";
 import { cn } from "@/lib/utils";
+
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? React.useLayoutEffect : React.useEffect;
+
+function AdminAuthGate({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const [allowed, setAllowed] = React.useState(false);
+
+  useIsomorphicLayoutEffect(() => {
+    const token = getStoredAccessToken();
+    if (!token || isAuthExpired()) {
+      router.replace(clientRoutes.login);
+      return;
+    }
+    setAllowed(true);
+  }, [router]);
+
+  if (!allowed) {
+    return (
+      <div
+        role="status"
+        aria-label="Đang tải"
+        className="flex min-h-dvh items-center justify-center bg-neutral-cool"
+      >
+        <Loader2
+          className="size-9 animate-spin text-muted-foreground"
+          strokeWidth={1.75}
+          aria-hidden
+        />
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}
 
 function AdminShellLayout({ children }: { children: React.ReactNode }) {
   const { theme } = useAppTheme();
@@ -37,5 +76,9 @@ function AdminShellLayout({ children }: { children: React.ReactNode }) {
 }
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
-  return <AdminShellLayout>{children}</AdminShellLayout>;
+  return (
+    <AdminAuthGate>
+      <AdminShellLayout>{children}</AdminShellLayout>
+    </AdminAuthGate>
+  );
 }

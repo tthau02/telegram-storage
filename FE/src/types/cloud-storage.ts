@@ -5,6 +5,7 @@ export type CloudFileDto = {
   fileHash: string;
   fileSize: number;
   mimeType: string;
+  thumbnailFileId?: number | null;
   thumbnailUrl?: string | null;
   /** Giống User: ISO 8601 từ `DateTimeOffset` (JSON). */
   createdAt: string;

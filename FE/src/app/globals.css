@@ -230,10 +230,10 @@
     @apply text-lg font-normal text-(--text-secondary);
   }
   .ds-auth-title {
-    @apply mt-0.5 text-[1.6rem] font-semibold leading-tight text-(--text-primary) sm:text-[1.8rem];
+    @apply mt-0.5 text-[1.6rem] font-semibold leading-tight text-(--brand-heading) sm:text-[1.8rem];
   }
   .ds-auth-footer {
-    @apply text-center text-sm text-(--text-secondary) lg:text-left;
+    @apply text-center text-sm text-(--text-secondary);
   }
 
   /* —— Links —— */
@@ -245,17 +245,28 @@
   }
 
   /* —— Auth shell & form rhythm —— */
+  /** Toàn màn hình: nền Neutral Warm, form căn giữa (DESIGN.md §2, §5). */
+  .ds-auth-page {
+    @apply grid min-h-dvh w-full place-items-center overflow-y-auto bg-[var(--page-canvas)] p-4 py-10 sm:p-6 sm:py-12;
+  }
+  /** Khung thẻ trắng bọc form — kết hợp với `ds-surface-card-elevated`. */
+  .ds-auth-card {
+    @apply w-full max-w-[26rem] p-6 sm:p-8;
+  }
+  .ds-auth-card-wide {
+    @apply max-w-[40rem];
+  }
   .ds-auth-view {
-    @apply flex max-h-[calc(100dvh-5rem)] min-h-0 flex-col lg:max-h-none;
+    @apply flex w-full min-w-0 flex-col;
   }
   .ds-auth-view-clip {
-    @apply overflow-hidden;
+    @apply min-w-0;
   }
   .ds-auth-form-login {
-    @apply mt-6 flex min-h-0 flex-1 flex-col gap-5 lg:gap-6;
+    @apply mt-6 flex flex-col gap-5 sm:gap-6;
   }
   .ds-auth-form-register {
-    @apply mt-4 flex min-h-0 flex-1 flex-col gap-3 lg:gap-4;
+    @apply mt-5 flex flex-col gap-4 sm:mt-6 sm:gap-5;
   }
   .ds-auth-tools-row {
     @apply flex items-center justify-between gap-4 text-sm;

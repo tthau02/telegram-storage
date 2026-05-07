@@ -14,6 +14,8 @@ public class CloudFileDto
 
     public string MimeType { get; init; } = string.Empty;
 
+    public long? ThumbnailFileId { get; init; }
+
     public string? ThumbnailUrl { get; init; }
 
     public DateTimeOffset CreatedAt { get; init; }

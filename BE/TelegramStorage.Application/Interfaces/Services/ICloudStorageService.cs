@@ -43,4 +43,9 @@ public interface ICloudStorageService
         bool precise,
         long? userId,
         CancellationToken cancellationToken = default);
+
+    Task<bool> StreamThumbnailAsync(
+        long cloudFileId,
+        Stream destination,
+        CancellationToken cancellationToken = default);
 }

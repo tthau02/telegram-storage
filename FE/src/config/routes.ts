@@ -11,7 +11,8 @@ const adminRoot = `/${ROUTE_SEGMENTS.admin}`;
 
 /** Public / client-facing paths */
 export const clientRoutes = {
-  home: "/",
+  /** Tạm thời: landing = admin (sau đăng nhập). */
+  home: adminRoot,
   login: "/login",
   register: "/register",
   // menu: "/menu",

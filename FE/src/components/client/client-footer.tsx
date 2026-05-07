@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { branding } from "@/config/branding";
 import { clientRoutes } from "@/config/routes";
 
 export function ClientFooter() {
@@ -8,22 +9,21 @@ export function ClientFooter() {
         <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
           <div>
             <p className="text-lg font-semibold tracking-[-0.01em] text-white">
-              Café
+              {branding.appNameShort}
             </p>
             <p className="mt-2 max-w-sm text-sm leading-relaxed text-[var(--text-on-dark-muted)]">
-              Demo giao diện theo hệ màu warm cream và green — bản nháp, chưa
-              gắn nghiệp vụ.
+              {branding.tagline}
             </p>
           </div>
           <Link
             href={clientRoutes.home}
             className="text-sm text-white/90 underline-offset-4 hover:underline"
           >
-            Về trang chủ
+            Mở bảng điều khiển
           </Link>
         </div>
         <p className="mt-10 border-t border-white/10 pt-6 text-xs text-[var(--text-on-dark-muted)]">
-          © {new Date().getFullYear()} — layout và token theo DESIGN.md
+          © {new Date().getFullYear()} {branding.appNameShort}
         </p>
       </div>
     </footer>

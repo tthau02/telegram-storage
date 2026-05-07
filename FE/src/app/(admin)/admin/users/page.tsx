@@ -148,7 +148,7 @@ export default function AdminUsersPage() {
 
   const pageHeader: CommonHeaderProps = {
     title: "Người dùng",
-    subtitle: "danh sách",
+    subtitle: "tài khoản hệ thống",
     actions: [
       {
         id: "add",
