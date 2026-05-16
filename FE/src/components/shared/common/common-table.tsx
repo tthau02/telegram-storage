@@ -282,7 +282,8 @@ function formatByType<T>(
       return (
         <a
           href={`mailto:${addr}`}
-          className="font-normal text-brand-heading underline-offset-2 hover:underline"
+          className="block max-w-[15rem] truncate font-normal text-brand-heading underline-offset-2 hover:underline"
+          title={addr}
         >
           {addr}
         </a>
@@ -308,13 +309,14 @@ function formatByType<T>(
               target="_blank"
               rel="noopener noreferrer"
               className={className}
+              title={display}
             >
               {display}
             </a>
           );
         }
         return (
-          <Link href={href} className={className}>
+          <Link href={href} className={className} title={display}>
             {display}
           </Link>
         );
@@ -357,6 +359,7 @@ function formatByType<T>(
             target="_blank"
             rel="noopener noreferrer"
             className={className}
+            title={display}
           >
             {display}
           </a>
@@ -364,7 +367,7 @@ function formatByType<T>(
       }
 
       return (
-        <Link href={href} className={className}>
+        <Link href={href} className={className} title={display}>
           {display}
         </Link>
       );
@@ -407,7 +410,7 @@ function formatByType<T>(
         const hit = mapping.find((e) => Object.is(e.key, raw));
         if (!hit) return "—";
         return (
-          <span className={cn(hit.badgeClass)}>
+          <span className={cn(hit.badgeClass)} title={hit.text}>
             <span className="truncate">{hit.text}</span>
           </span>
         );
@@ -419,6 +422,7 @@ function formatByType<T>(
           className={cn(
             "inline-flex max-w-full items-center rounded-full border border-border bg-muted px-2.5 py-0.5 text-xs font-medium tracking-[-0.01em] text-foreground",
           )}
+          title={s}
         >
           <span className="truncate">{s}</span>
         </span>
@@ -426,7 +430,13 @@ function formatByType<T>(
     }
     case "text":
     default:
-      return raw != null ? String(raw) : "—";
+      if (raw == null) return "—";
+      const s = String(raw);
+      return (
+        <span className="block max-w-[18rem] truncate" title={s}>
+          {s}
+        </span>
+      );
   }
 }
 

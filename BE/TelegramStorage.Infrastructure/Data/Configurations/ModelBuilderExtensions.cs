@@ -102,6 +102,49 @@ public static class ModelBuilderExtensions
                 .IsUnique()
                 .HasFilter("[IsDeleted] = 0");
             b.HasIndex(e => e.IsDeleted);
+            b.HasIndex(e => e.OwnerId);
+            b.HasIndex(e => e.FolderId);
+            b.HasOne(e => e.Owner)
+                .WithMany()
+                .HasForeignKey(e => e.OwnerId)
+                .OnDelete(DeleteBehavior.Restrict);
+            b.HasOne(e => e.Folder)
+                .WithMany(f => f.Files)
+                .HasForeignKey(e => e.FolderId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<Folder>(b =>
+        {
+            b.ToTable("Folder");
+            b.Property(e => e.Name).IsRequired();
+            b.HasIndex(e => e.OwnerId);
+            b.HasIndex(e => e.ParentId);
+            b.HasOne(e => e.Owner)
+                .WithMany()
+                .HasForeignKey(e => e.OwnerId)
+                .OnDelete(DeleteBehavior.Restrict);
+            b.HasOne(e => e.Parent)
+                .WithMany(f => f.Children)
+                .HasForeignKey(e => e.ParentId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<SharedLink>(b =>
+        {
+            b.ToTable("SharedLink");
+            b.Property(e => e.Token).IsRequired();
+            b.HasIndex(e => e.CloudFileId);
+            b.HasIndex(e => e.CreatedByUserId);
+            // Restrict: tránh nhiều đường cascade tới TrafficLogs (CloudFile + SharedLink) trên SQL Server
+            b.HasOne(e => e.CloudFile)
+                .WithMany(f => f.SharedLinks)
+                .HasForeignKey(e => e.CloudFileId)
+                .OnDelete(DeleteBehavior.Restrict);
+            b.HasOne(e => e.Creator)
+                .WithMany(u => u.SharedLinks)
+                .HasForeignKey(e => e.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<TrafficLog>(b =>
@@ -112,9 +155,18 @@ public static class ModelBuilderExtensions
             b.HasIndex(e => e.UserId);
             b.HasIndex(e => e.CreatedAt);
             b.HasIndex(e => e.CloudFileId);
+            b.HasIndex(e => e.SharedLinkId);
             b.HasOne(e => e.CloudFile)
                 .WithMany()
                 .HasForeignKey(e => e.CloudFileId)
+                .OnDelete(DeleteBehavior.SetNull);
+            b.HasOne(e => e.SharedLink)
+                .WithMany()
+                .HasForeignKey(e => e.SharedLinkId)
+                .OnDelete(DeleteBehavior.SetNull);
+            b.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
     }

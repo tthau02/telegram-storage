@@ -133,8 +133,8 @@ function ThumbnailCell({ row, token }: { row: CloudFileRow; token?: string }) {
   }, [row.id, row.thumbnailFileId, token]);
 
   return (
-    <div className="flex items-center gap-3">
-      <div className="relative h-12 w-20 overflow-hidden rounded-md border border-border bg-muted/40">
+    <div className="flex max-w-[520px] items-center gap-3">
+      <div className="relative h-12 w-20 shrink-0 overflow-hidden rounded-md border border-border bg-muted/40">
         {thumbnailBlobUrl ? (
           <>
             {/* eslint-disable-next-line @next/next/no-img-element -- blob URL được tạo từ API có auth */}
@@ -161,7 +161,9 @@ function ThumbnailCell({ row, token }: { row: CloudFileRow; token?: string }) {
           </div>
         )}
       </div>
-      <span className="line-clamp-2">{row.fileName}</span>
+      <span className="min-w-0 truncate" title={row.fileName}>
+        {row.fileName}
+      </span>
     </div>
   );
 }
@@ -243,6 +245,7 @@ export default function AdminCloudPage() {
       label: "Tệp",
       type: "text",
       sortable: true,
+      className: "max-w-[520px]",
       renderCell: (row) => <ThumbnailCell row={row} token={token} />,
     },
     { id: "createdAt", label: "Ngày upload", type: "datetime", sortable: true },

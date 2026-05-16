@@ -12,8 +12,8 @@ using TelegramStorage.Infrastructure.Data;
 namespace TelegramStorage.Infrastructure.Migrations
 {
     [DbContext(typeof(TelegramStorageDbContext))]
-    [Migration("20260507143800_AddthumbnailId")]
-    partial class AddthumbnailId
+    [Migration("20260516134412_addInitTable")]
+    partial class addInitTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -40,6 +40,9 @@ namespace TelegramStorage.Infrastructure.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
+                    b.Property<string>("DisplayName")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("FileHash")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -53,13 +56,33 @@ namespace TelegramStorage.Infrastructure.Migrations
                     b.Property<long>("FileSize")
                         .HasColumnType("bigint");
 
+                    b.Property<long?>("FolderId")
+                        .HasColumnType("bigint");
+
                     b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsStarred")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsTrashed")
                         .HasColumnType("bit");
 
                     b.Property<string>("MimeType")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<long>("OwnerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("TelegramChatId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TelegramFileId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<long>("TelegramMessageId")
                         .HasColumnType("bigint");
@@ -69,6 +92,9 @@ namespace TelegramStorage.Infrastructure.Migrations
 
                     b.Property<string>("ThumbnailUrl")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("TrashedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
@@ -83,13 +109,70 @@ namespace TelegramStorage.Infrastructure.Migrations
                         .IsUnique()
                         .HasFilter("[IsDeleted] = 0");
 
+                    b.HasIndex("FolderId");
+
                     b.HasIndex("IsDeleted");
+
+                    b.HasIndex("OwnerId");
 
                     b.HasIndex("TelegramMessageId");
 
                     b.HasIndex("ThumbnailFileId");
 
                     b.ToTable("Files", (string)null);
+                });
+
+            modelBuilder.Entity("TelegramStorage.Domain.Entities.Folder", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsStarred")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsTrashed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("OwnerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("ParentId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("TrashedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
+
+                    b.HasIndex("ParentId");
+
+                    b.ToTable("Folder", (string)null);
                 });
 
             modelBuilder.Entity("TelegramStorage.Domain.Entities.Permission", b =>
@@ -224,6 +307,65 @@ namespace TelegramStorage.Infrastructure.Migrations
                     b.ToTable("Roles", (string)null);
                 });
 
+            modelBuilder.Entity("TelegramStorage.Domain.Entities.SharedLink", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CloudFileId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<long>("CreatedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("DownloadCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("MaxDownloads")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CloudFileId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.ToTable("SharedLink", (string)null);
+                });
+
             modelBuilder.Entity("TelegramStorage.Domain.Entities.TrafficLog", b =>
                 {
                     b.Property<long>("Id")
@@ -250,8 +392,14 @@ namespace TelegramStorage.Infrastructure.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
+                    b.Property<string>("IpAddress")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
+
+                    b.Property<long?>("SharedLinkId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("SourceUrl")
                         .HasColumnType("nvarchar(max)");
@@ -271,6 +419,8 @@ namespace TelegramStorage.Infrastructure.Migrations
                     b.HasIndex("CloudFileId");
 
                     b.HasIndex("CreatedAt");
+
+                    b.HasIndex("SharedLinkId");
 
                     b.HasIndex("UserId");
 
@@ -391,6 +541,61 @@ namespace TelegramStorage.Infrastructure.Migrations
                     b.ToTable("UserRoles", (string)null);
                 });
 
+            modelBuilder.Entity("TelegramStorage.Domain.Entities.CloudFile", b =>
+                {
+                    b.HasOne("TelegramStorage.Domain.Entities.Folder", "Folder")
+                        .WithMany("Files")
+                        .HasForeignKey("FolderId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("TelegramStorage.Domain.Entities.User", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Folder");
+
+                    b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("TelegramStorage.Domain.Entities.Folder", b =>
+                {
+                    b.HasOne("TelegramStorage.Domain.Entities.User", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TelegramStorage.Domain.Entities.Folder", "Parent")
+                        .WithMany("Children")
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Owner");
+
+                    b.Navigation("Parent");
+                });
+
+            modelBuilder.Entity("TelegramStorage.Domain.Entities.SharedLink", b =>
+                {
+                    b.HasOne("TelegramStorage.Domain.Entities.CloudFile", "CloudFile")
+                        .WithMany("SharedLinks")
+                        .HasForeignKey("CloudFileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TelegramStorage.Domain.Entities.User", "Creator")
+                        .WithMany("SharedLinks")
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CloudFile");
+
+                    b.Navigation("Creator");
+                });
+
             modelBuilder.Entity("TelegramStorage.Domain.Entities.TrafficLog", b =>
                 {
                     b.HasOne("TelegramStorage.Domain.Entities.CloudFile", "CloudFile")
@@ -398,7 +603,21 @@ namespace TelegramStorage.Infrastructure.Migrations
                         .HasForeignKey("CloudFileId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("TelegramStorage.Domain.Entities.SharedLink", "SharedLink")
+                        .WithMany()
+                        .HasForeignKey("SharedLinkId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("TelegramStorage.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("CloudFile");
+
+                    b.Navigation("SharedLink");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("TelegramStorage.Domain.Entities.UserRole", b =>
@@ -422,6 +641,18 @@ namespace TelegramStorage.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("TelegramStorage.Domain.Entities.CloudFile", b =>
+                {
+                    b.Navigation("SharedLinks");
+                });
+
+            modelBuilder.Entity("TelegramStorage.Domain.Entities.Folder", b =>
+                {
+                    b.Navigation("Children");
+
+                    b.Navigation("Files");
+                });
+
             modelBuilder.Entity("TelegramStorage.Domain.Entities.Role", b =>
                 {
                     b.Navigation("UserRoles");
@@ -429,6 +660,8 @@ namespace TelegramStorage.Infrastructure.Migrations
 
             modelBuilder.Entity("TelegramStorage.Domain.Entities.User", b =>
                 {
+                    b.Navigation("SharedLinks");
+
                     b.Navigation("UserRoles");
                 });
 #pragma warning restore 612, 618

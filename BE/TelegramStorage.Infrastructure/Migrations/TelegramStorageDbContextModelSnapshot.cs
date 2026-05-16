@@ -129,7 +129,7 @@ namespace TelegramStorage.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Permissions");
+                    b.ToTable("Permissions", (string)null);
                 });
 
             modelBuilder.Entity("TelegramStorage.Domain.Entities.PermissionGrant", b =>
@@ -171,7 +171,7 @@ namespace TelegramStorage.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PermissionGrants");
+                    b.ToTable("PermissionGrants", (string)null);
                 });
 
             modelBuilder.Entity("TelegramStorage.Domain.Entities.Role", b =>

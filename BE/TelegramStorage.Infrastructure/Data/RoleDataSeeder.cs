@@ -19,7 +19,7 @@ public static class RoleDataSeeder
             new Role
             {
                 Name = "admin",
-                DisplayName = "Quáº£n trá»‹ há»‡ thá»‘ng",
+                DisplayName = "Quản trị hệ thống",
                 IsStatic = true,
                 CreatedAt = createdAt,
                 IsDeleted = false,
@@ -27,7 +27,7 @@ public static class RoleDataSeeder
             new Role
             {
                 Name = "staff",
-                DisplayName = "NhÃ¢n viÃªn",
+                DisplayName = "Nhân viên",
                 IsStatic = false,
                 CreatedAt = createdAt,
                 IsDeleted = false,
@@ -35,7 +35,7 @@ public static class RoleDataSeeder
             new Role
             {
                 Name = "customer",
-                DisplayName = "KhÃ¡ch hÃ ng",
+                DisplayName = "Khách hàng",
                 IsStatic = false,
                 CreatedAt = createdAt,
                 IsDeleted = false,

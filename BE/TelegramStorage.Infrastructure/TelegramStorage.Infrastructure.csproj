@@ -39,4 +39,8 @@
     <ProjectReference Include="..\TelegramStorage.Domain\TelegramStorage.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Migrations\" />
+  </ItemGroup>
+
 </Project>

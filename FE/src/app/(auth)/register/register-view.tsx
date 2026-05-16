@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { clientRoutes } from "@/config/routes";
 import { branding } from "@/config/branding";
@@ -82,7 +83,7 @@ export function RegisterView() {
   return (
     <div className="ds-surface-card-elevated ds-auth-card ds-auth-card-wide">
       <div className="ds-auth-view">
-        <p className="text-center text-[11px] font-semibold tracking-[0.08em] text-text-secondary-token uppercase">
+        <p className="ds-text-overline text-center">
           {branding.appNameShort}
         </p>
         <p className="ds-auth-greeting mt-4 text-center sm:mt-5">Xin chào,</p>
@@ -187,19 +188,31 @@ function Field({
 }) {
   return (
     <div className="min-w-0 space-y-1">
-      <Label htmlFor={id} className="ds-text-overline">
+      <Label htmlFor={id} className="text-sm text-(--text-secondary)">
         {label}
       </Label>
-      <Input
-        id={id}
-        type={type}
-        autoComplete={autoComplete}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="ds-auth-input"
-        aria-invalid={Boolean(error)}
-      />
+      {type === "password" ? (
+        <PasswordInput
+          id={id}
+          autoComplete={autoComplete}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="ds-auth-input"
+          aria-invalid={Boolean(error)}
+        />
+      ) : (
+        <Input
+          id={id}
+          type={type}
+          autoComplete={autoComplete}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="ds-auth-input"
+          aria-invalid={Boolean(error)}
+        />
+      )}
       {error ? (
         <p className="ds-field-error-sm" role="alert">
           {error}

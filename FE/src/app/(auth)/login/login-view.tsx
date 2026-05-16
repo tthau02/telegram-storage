@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { clientRoutes } from "@/config/routes";
 import { branding } from "@/config/branding";
@@ -69,7 +70,7 @@ export function LoginView() {
   return (
     <div className="ds-surface-card-elevated ds-auth-card">
       <div className="ds-auth-view">
-        <p className="text-center text-[11px] font-semibold tracking-[0.08em] text-text-secondary-token uppercase">
+        <p className="ds-text-overline text-center">
           {branding.appNameShort}
         </p>
         <p className="ds-auth-greeting mt-4 text-center sm:mt-5">Xin chào,</p>
@@ -78,7 +79,7 @@ export function LoginView() {
         <form className="ds-auth-form-login" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="auth-login-id" className="sr-only">
+              <Label htmlFor="auth-login-id" className="text-sm text-(--text-secondary)">
                 Email hoặc tên đăng nhập
               </Label>
               <Input
@@ -97,12 +98,11 @@ export function LoginView() {
               ) : null}
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="auth-login-password" className="sr-only">
+              <Label htmlFor="auth-login-password" className="text-sm text-(--text-secondary)">
                 Mật khẩu
               </Label>
-              <Input
+              <PasswordInput
                 id="auth-login-password"
-                type="password"
                 autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

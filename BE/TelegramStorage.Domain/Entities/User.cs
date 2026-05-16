@@ -16,7 +16,7 @@ namespace TelegramStorage.Domain.Entities
         public string? Avatar { get; set; }
         public bool Status { get; set; } = true;
 
-        // Navigation
+        public ICollection<SharedLink> SharedLinks { get; set; } = new List<SharedLink>();
         public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 
     }
