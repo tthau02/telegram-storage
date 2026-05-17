@@ -2,56 +2,56 @@
 name: simple-web-ui
 description: >-
   Applies simple-web UI patterns — Starbucks-inspired design tokens, ds-*
-  component classes, shadcn/ui, Tailwind 4 semantic colors, Vietnamese copy.
-  Use when styling pages, auth flows, admin UI, or components in FE/.
+  component classes, shadcn/ui, Tailwind 4 semantic colors, Vietnamese user
+  copy. Use when styling pages, auth flows, admin UI, or components in FE/.
 ---
 
 # UI — Design System
 
-## Tài liệu gốc
+## Source of truth
 
-Đọc `FE/DESIGN.md` cho palette, typography, do/don't.
+Read `FE/DESIGN.md` for palette, typography, do/don't.
 
-Implementation: CSS variables trong `FE/src/app/globals.css` + class `ds-*`.
+Implementation: CSS variables in `FE/src/app/globals.css` + `ds-*` classes.
 
-## Khi nào dùng gì
+## When to use what
 
-| Ngữ cảnh | Cách làm |
-|----------|----------|
+| Context | Approach |
+|---------|----------|
 | Auth (login/register) | `ds-auth-*`, `ds-btn-primary-pill`, `ds-auth-input` |
-| Card nổi trên nền cream | `ds-surface-card-elevated` |
-| Admin (folders, users, cloud) | shadcn `components/ui/*` + Tailwind semantic (`bg-card`, `border-border`) |
-| Lỗi form | `ds-field-error`, `ds-text-error` |
+| Elevated card on cream canvas | `ds-surface-card-elevated` |
+| Admin (folders, users, cloud) | shadcn `components/ui/*` + semantic Tailwind (`bg-card`, `border-border`) |
+| Form errors | `ds-field-error`, `ds-text-error` |
 
-## Quy tắc Tailwind
+## Tailwind rules
 
-- Dùng token semantic: `text-foreground`, `bg-muted`, `text-destructive`.
-- Tránh hex trực tiếp trừ token đã định nghĩa trong `:root`.
-- Nút pill auth: `ds-btn-primary-pill` (radius 50px, `active:scale-95`).
-- Icon: `lucide-react`, size `size-4` / `size-3.5` trong menu.
+- Use semantic tokens: `text-foreground`, `bg-muted`, `text-destructive`.
+- Avoid raw hex unless defined in `:root`.
+- Auth pill button: `ds-btn-primary-pill` (50px radius, `active:scale-95`).
+- Icons: `lucide-react`, `size-4` / `size-3.5` in menus.
 
 ## shadcn
 
-- Component gốc: `FE/src/components/ui/`.
-- Mở rộng bằng `className` + `cn()`, không fork không cần thiết.
+- Primitives: `FE/src/components/ui/`.
+- Extend via `className` + `cn()`; avoid unnecessary forks.
 
-## Ngôn ngữ
+## Copy language
 
-- Label, toast, dialog: **tiếng Việt**.
-- `aria-label` mô tả hành động (vd. `Thao tác cho ${name}`).
+- Labels, toasts, dialogs: **Vietnamese** (product requirement).
+- `aria-label` should describe the action (e.g. `Thao tác cho ${name}`).
 
 ## Admin layout
 
 - Shell: `AdminShell`, sidebar `admin-nav.ts`.
-- Bảng: `common-table.tsx`, filter `table-filter.tsx`.
+- Tables: `common-table.tsx`, filter `table-filter.tsx`.
 
-## Thêm primitive mới
+## Adding a new primitive
 
-1. Thêm CSS variable vào `:root` trong `globals.css` (nếu cần).
-2. Thêm class `ds-*` trong `@layer components`.
-3. Ghi chú ngắn trong `DESIGN.md` §10 nếu là primitive tái sử dụng.
+1. Add CSS variable to `:root` in `globals.css` if needed.
+2. Add `ds-*` class under `@layer components`.
+3. Document briefly in `DESIGN.md` §10 if reusable.
 
-## Tham chiếu
+## References
 
 - `FE/DESIGN.md` §10 (`ds-*` table)
 - `FE/src/app/globals.css`

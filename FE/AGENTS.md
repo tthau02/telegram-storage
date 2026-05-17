@@ -1,18 +1,18 @@
 # FE — Agent notes
 
-Đọc trước: [`../AGENTS.md`](../AGENTS.md) (toàn repo) · Chi tiết: [`../CLAUDE.md`](../CLAUDE.md) · UI: [`DESIGN.md`](DESIGN.md)
+Read first: [`../AGENTS.md`](../AGENTS.md) (whole repo) · Detail: [`../CLAUDE.md`](../CLAUDE.md) · UI: [`DESIGN.md`](DESIGN.md)
 
-## Next.js 16 (bắt buộc)
+## Next.js 16 (required)
 
-API và convention **khác Next 14/15**. Trước khi viết/sửa code FE, đọc guide trong:
+APIs and conventions **differ from Next 14/15**. Before writing or editing FE code, read guides in:
 
 `FE/node_modules/next/dist/docs/`
 
-Không giả định Pages Router hay API cũ từ training data.
+Do not assume Pages Router or older APIs from training data.
 
-## FE nhanh
+## FE cheat sheet
 
 - Alias `@/` → `src/`
-- Luồng: `app/*` → `hooks/api` → `services` → `lib/api-client.ts`
+- Flow: `app/*` → `hooks/api` → `services` → `lib/api-client.ts`
 - Env: `NEXT_PUBLIC_API_URL=http://localhost:8080` (`.env.local`)
-- Lint: `npm run lint` (trong `FE/`)
+- Lint: `npm run lint` (from `FE/`)

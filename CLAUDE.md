@@ -1,62 +1,62 @@
-# Simple Web (TelegramStorage) — Hướng dẫn cho AI Agent
+# Simple Web (TelegramStorage) — AI Agent Guide
 
-> Onboarding nhanh cho mọi agent: [`AGENTS.md`](AGENTS.md). File này là bản chi tiết.
+> Fast onboarding for any agent: [`AGENTS.md`](AGENTS.md). This file is the detailed reference.
 
-Monorepo lưu trữ đám mây qua Telegram: **BE** (.NET 8) + **FE** (Next.js 16 / React 19). UI tiếng Việt, API envelope thống nhất.
+Monorepo for Telegram-backed cloud storage: **BE** (.NET 8) + **FE** (Next.js 16 / React 19). Vietnamese UI copy; unified API envelope.
 
-## Tổng quan dự án
+## Project overview
 
-| Thành phần | Mô tả |
-|------------|--------|
-| **BE** | API ASP.NET Core, SQL Server, JWT, upload/stream file qua Telegram (WTelegramClient) |
-| **FE** | Admin + auth + client; gọi API qua `apiFetch`, React Query, Redux (theme/UI) |
+| Component | Description |
+|-----------|-------------|
+| **BE** | ASP.NET Core API, SQL Server, JWT, upload/stream via Telegram (WTelegramClient) |
+| **FE** | Admin + auth + client; API via `apiFetch`, React Query, Redux (theme/UI) |
 | **Docker** | `BE/docker-compose.yml` — SQL Server + API; FE dev `:3000`, API `:8080` |
 
-Đọc thêm: [DOCKER.md](DOCKER.md), thiết kế UI [FE/DESIGN.md](FE/DESIGN.md), Next.js [FE/AGENTS.md](FE/AGENTS.md).
+See also: [DOCKER.md](DOCKER.md), UI design [FE/DESIGN.md](FE/DESIGN.md), Next.js [FE/AGENTS.md](FE/AGENTS.md).
 
 ---
 
-## Thư viện chính
+## Main libraries
 
 ### Backend (`BE/`)
 
-| Package | Vai trò |
-|---------|---------|
+| Package | Role |
+|---------|------|
 | **.NET 8** | Runtime |
 | **EF Core 8 + SQL Server** | ORM, migrations |
-| **FluentValidation** | Validate request (auto-validation) |
+| **FluentValidation** | Request validation (auto-validation) |
 | **AutoMapper** | Entity ↔ DTO |
-| **JWT Bearer** | Xác thực API |
+| **JWT Bearer** | API authentication |
 | **Swashbuckle** | Swagger (Development) |
-| **WTelegramClient** | MTProto Telegram |
-| **SixLabors.ImageSharp** | Thumbnail |
-| **Xabe.FFmpeg** | Xử lý media (mirror/yt-dlp) |
-| **ASP.NET Identity PasswordHasher** | Hash mật khẩu user |
+| **WTelegramClient** | Telegram MTProto |
+| **SixLabors.ImageSharp** | Thumbnails |
+| **Xabe.FFmpeg** | Media processing (mirror/yt-dlp) |
+| **ASP.NET Identity PasswordHasher** | User password hashing |
 
 ### Frontend (`FE/`)
 
-| Package | Vai trò |
-|---------|---------|
-| **Next.js 16.2** | App Router — **đọc `node_modules/next/dist/docs/` trước khi code** (API khác bản cũ) |
+| Package | Role |
+|---------|------|
+| **Next.js 16.2** | App Router — **read `node_modules/next/dist/docs/` before coding** (APIs differ from older versions) |
 | **React 19** | UI |
 | **TypeScript 5** | strict mode |
 | **Tailwind CSS 4** | Styling + `@layer components` (`ds-*`) |
-| **shadcn / Radix / Base UI** | Component primitives (`src/components/ui/`) |
+| **shadcn / Radix / Base UI** | Primitives (`src/components/ui/`) |
 | **TanStack React Query 5** | Server state, cache, mutations |
 | **Redux Toolkit** | Theme, UI slice |
 | **lucide-react** | Icons |
-| **sonner** | Toast |
-| **date-fns, react-day-picker** | Ngày tháng |
-| **class-variance-authority, clsx, tailwind-merge** | Class utilities (`cn()` trong `lib/utils.ts`) |
+| **sonner** | Toasts |
+| **date-fns, react-day-picker** | Dates |
+| **class-variance-authority, clsx, tailwind-merge** | Utilities (`cn()` in `lib/utils.ts`) |
 
 ---
 
-## Cấu trúc source code
+## Source layout
 
 ```
 simple-web/
-├── AGENTS.md                 # Onboarding ngắn (mọi AI agent)
-├── CLAUDE.md                 # File này (chi tiết)
+├── AGENTS.md                 # Short onboarding (all AI agents)
+├── CLAUDE.md                 # This file (detailed)
 ├── DOCKER.md
 ├── BE/
 │   ├── TelegramStorage/              # Web host: Controllers, Program.cs, Middleware
@@ -65,7 +65,7 @@ simple-web/
 │   ├── TelegramStorage.Infrastructure/ # EF DbContext, Repositories, Services, Migrations
 │   └── docker-compose.yml
 └── FE/
-    ├── AGENTS.md             # Cảnh báo Next.js 16
+    ├── AGENTS.md             # Next.js 16 warning
     ├── DESIGN.md             # Design tokens + ds-* classes
     └── src/
         ├── app/              # Route groups: (auth), (admin), (client)
@@ -75,12 +75,12 @@ simple-web/
         ├── hooks/api/        # React Query hooks + query keys
         ├── lib/              # api-client, auth-storage, utils, toast
         ├── providers/        # Query, Redux, theme
-        ├── services/         # Gọi API (1 service / resource)
+        ├── services/         # API layer (one service per resource)
         ├── store/            # Redux slices
-        └── types/            # TypeScript DTOs khớp BE
+        └── types/            # TypeScript DTOs matching BE
 ```
 
-### Luồng phụ thuộc BE (Clean Architecture)
+### BE dependency flow (Clean Architecture)
 
 ```
 Controller → I*Service (Application) → Implementation (Infrastructure) → DbContext / Telegram
@@ -88,35 +88,35 @@ Controller → I*Service (Application) → Implementation (Infrastructure) → D
          FluentValidator, AutoMapper
 ```
 
-- **Domain**: chỉ entity, không reference layer khác.
-- **Application**: contract + DTO + validator; không reference Infrastructure.
-- **Infrastructure**: EF, Telegram, implement service.
+- **Domain**: entities only; no references to other layers.
+- **Application**: contracts + DTOs + validators; no Infrastructure reference.
+- **Infrastructure**: EF, Telegram, service implementations.
 - **TelegramStorage (API)**: thin controllers, middleware, DI wiring.
 
-### Luồng FE
+### FE flow
 
 ```
 page.tsx → hooks/api (useQuery/useMutation) → services/* → apiFetch → BE /v1/api/...
 ```
 
-- Token JWT: lấy từ `auth-storage`, truyền `token` vào service/hook.
-- Không gọi `fetch` trực tiếp trong page nếu đã có service.
+- JWT from `auth-storage`, pass `token` into services/hooks.
+- Do not call `fetch` directly in pages when a service exists.
 
 ---
 
-## Quy ước API (FE ↔ BE)
+## API conventions (FE ↔ BE)
 
 ### Route prefix
 
-Tất cả controller kế thừa `BaseController`:
+All controllers inherit `BaseController`:
 
 ```csharp
 [Route("v1/api/[controller]")]
 ```
 
-Ví dụ: `FoldersController` → `/v1/api/Folders/tree`.
+Example: `FoldersController` → `/v1/api/Folders/tree`.
 
-### Envelope JSON (camelCase)
+### JSON envelope (camelCase)
 
 ```json
 {
@@ -128,44 +128,44 @@ Ví dụ: `FoldersController` → `/v1/api/Folders/tree`.
 }
 ```
 
-- FE: `apiFetch` trong `FE/src/lib/api-client.ts` unwrap `data`, ném `ApiError` khi `success === false`.
-- BE: `OkResponse`, `FailResponse`, `NotFoundResponse` trên `BaseController`.
+- FE: `apiFetch` in `FE/src/lib/api-client.ts` unwraps `data`, throws `ApiError` when `success === false`.
+- BE: `OkResponse`, `FailResponse`, `NotFoundResponse` on `BaseController`.
 
 ### Auth
 
 - Login: `POST /v1/api/Auth/login` → JWT.
 - Header: `Authorization: Bearer <token>`.
-- Controller protected: `[Authorize]`.
+- Protected controllers: `[Authorize]`.
 
-### Upload có tiến độ Telegram
+### Telegram upload progress
 
-- Header: `X-Ndjson-Upload-Progress: 1` (hằng `NDJSON_UPLOAD_PROGRESS_HEADER` ở FE).
-- FE dùng `apiUploadFormDataNdjson` (XHR + NDJSON stream).
+- Header: `X-Ndjson-Upload-Progress: 1` (constant `NDJSON_UPLOAD_PROGRESS_HEADER` on FE).
+- FE uses `apiUploadFormDataNdjson` (XHR + NDJSON stream).
 
 ---
 
-## Format & style code
+## Code format & style
 
 ### Backend (C#)
 
-- `Nullable enable`, file-scoped namespace khi phù hợp.
-- Controller: **không** business logic; chỉ map request → service → `ApiResponse`.
-- Service mới CRUD: cân nhắc kế thừa `AppServiceBase` + `IUnitOfWork` / `Repo<T>()`.
-- Validation: `AbstractValidator<T>` trong `Application/Validators`, đăng ký qua `AddValidatorsFromAssembly`.
-- Lỗi nghiệp vụ: `KeyNotFoundException` (404), `InvalidOperationException` (400) — `ExceptionHandlingMiddleware` map sang envelope.
-- Message user-facing: **tiếng Việt** (đồng bộ FE toast).
-- Migration: thêm vào `TelegramStorage.Infrastructure/Migrations`, chạy tự động khi API start (`MigrateAsync`).
+- `Nullable enable`, file-scoped namespaces where appropriate.
+- Controllers: **no** business logic; map request → service → `ApiResponse` only.
+- New CRUD services: prefer `AppServiceBase` + `IUnitOfWork` / `Repo<T>()`.
+- Validation: `AbstractValidator<T>` in `Application/Validators`, registered via `AddValidatorsFromAssembly`.
+- Business errors: `KeyNotFoundException` (404), `InvalidOperationException` (400) — mapped by `ExceptionHandlingMiddleware`.
+- User-facing messages: **Vietnamese** (match FE toasts and existing API strings).
+- Migrations: under `TelegramStorage.Infrastructure/Migrations`, applied on API start (`MigrateAsync`).
 
 ### Frontend (TypeScript / React)
 
-- `"use client"` chỉ khi cần hooks/events; layout/page server khi có thể.
+- `"use client"` only when hooks/events are needed; prefer server layout/page when possible.
 - Import alias: `@/` → `src/`.
-- **Services**: object `const xxxService = { ... }`, path `BASE = "/v1/api/..."`.
-- **Hooks**: `useXxxQuery` / `useXxxMutation` trong `hooks/api/`, `queryKeys` tách file hoặc cùng module.
-- **Types**: mirror DTO BE trong `src/types/`.
-- UI: ưu tiên component `components/ui/*`; class design system `ds-*` từ `globals.css` (xem DESIGN.md §10).
-- Tailwind: semantic tokens (`bg-card`, `text-muted-foreground`), tránh hex lẻ trừ khi đã có token.
-- Lỗi API: `instanceof ApiError` + `sonner` toast (pattern trong `use-folders.ts`).
+- **Services**: `const xxxService = { ... }`, `BASE = "/v1/api/..."`.
+- **Hooks**: `useXxxQuery` / `useXxxMutation` in `hooks/api/`, `queryKeys` in same module or dedicated file.
+- **Types**: mirror BE DTOs in `src/types/`.
+- UI: prefer `components/ui/*`; design system `ds-*` from `globals.css` (DESIGN.md §10).
+- Tailwind: semantic tokens (`bg-card`, `text-muted-foreground`); avoid ad-hoc hex unless tokenized.
+- API errors: `instanceof ApiError` + `sonner` toast (see `use-folders.ts`).
 
 ### ESLint
 
@@ -173,29 +173,29 @@ Ví dụ: `FoldersController` → `/v1/api/Folders/tree`.
 cd FE && npm run lint
 ```
 
-Dùng `eslint-config-next` (core-web-vitals + typescript).
+Uses `eslint-config-next` (core-web-vitals + typescript).
 
 ---
 
-## Rules dự án (bắt buộc)
+## Project rules (required)
 
-1. **Phạm vi thay đổi**: Chỉ sửa code liên quan task; không refactor lan man.
-2. **Không commit secret**: `.env`, `telegram.session`, connection string production.
-3. **Không commit** trừ khi user yêu cầu rõ.
-4. **API contract**: Thêm field BE → cập nhật `types/` + `services/` + hooks FE.
-5. **Next.js 16**: Không giả định API Pages Router cũ; đọc docs trong `node_modules/next/dist/docs/`.
-6. **CORS**: BE cấu hình `Cors:AllowedOrigins`; dev mặc định `localhost:3000`.
-7. **Ngôn ngữ UI**: Tiếng Việt cho label, toast, message lỗi hiển thị user.
-8. **Design**: Panel auth / marketing dùng `ds-*`; admin dùng shadcn + Tailwind semantic.
-9. **Telegram session**: File session nhạy cảm — không đưa vào git.
-10. **Docker prod**: `NEXT_PUBLIC_API_URL` = URL public API khi build image FE.
+1. **Scope**: Change only code required for the task; no unrelated refactors.
+2. **Secrets**: Never commit `.env`, `telegram.session`, production connection strings.
+3. **Commits**: Only when the user explicitly requests.
+4. **API contract**: BE field changes → update FE `types/`, `services/`, hooks.
+5. **Next.js 16**: Do not assume legacy Pages Router APIs; read `node_modules/next/dist/docs/`.
+6. **CORS**: BE `Cors:AllowedOrigins`; dev defaults include `localhost:3000`.
+7. **UI language**: Vietnamese for labels, toasts, and user-visible errors.
+8. **Design**: Auth/marketing panels use `ds-*`; admin uses shadcn + semantic Tailwind.
+9. **Telegram session**: Sensitive — never commit to git.
+10. **Docker prod**: Set `NEXT_PUBLIC_API_URL` to the public API URL when building the FE image.
 
 ---
 
-## Chạy local
+## Run locally
 
 ```bash
-# BE (từ BE/ hoặc docker compose)
+# BE (from BE/ or docker compose)
 dotnet run --project TelegramStorage
 
 # FE
@@ -207,31 +207,31 @@ Swagger (Development): `http://localhost:8080/swagger`.
 
 ---
 
-## Skills trong repo (`.cursor/skills/`)
+## Repo skills (`.cursor/skills/`)
 
-Agent nên đọc skill phù hợp khi làm task chuyên biệt:
+Read the matching skill for specialized tasks:
 
-| Skill | Khi dùng |
+| Skill | Use when |
 |-------|----------|
-| `simple-web-backend` | Controller, service, EF, validator |
-| `simple-web-frontend` | Page, hook, service, Next.js 16 |
-| `simple-web-api-contract` | Thêm/sửa endpoint, đồng bộ FE types |
-| `simple-web-ef-migrations` | Schema DB, migration |
-| `simple-web-ui` | Component, `ds-*`, DESIGN.md |
+| `simple-web-backend` | Controllers, services, EF, validators |
+| `simple-web-frontend` | Pages, hooks, services, Next.js 16 |
+| `simple-web-api-contract` | Endpoints, FE type sync |
+| `simple-web-ef-migrations` | DB schema, migrations |
+| `simple-web-ui` | Components, `ds-*`, DESIGN.md |
 | `simple-web-telegram-cloud` | Upload, stream, Telegram gateway |
 
 ---
 
-## Checklist feature mới
+## New feature checklist
 
 **BE**
 
-- [ ] Entity / cập nhật DbContext
-- [ ] DTO + interface `I*Service` (Application)
-- [ ] Validator (nếu có body)
-- [ ] Implementation (Infrastructure) + đăng ký DI
-- [ ] Controller action + `[Authorize]` nếu cần
-- [ ] Migration nếu đổi schema
+- [ ] Entity / DbContext update
+- [ ] DTO + `I*Service` (Application)
+- [ ] Validator (if request body)
+- [ ] Implementation (Infrastructure) + DI registration
+- [ ] Controller action + `[Authorize]` if needed
+- [ ] Migration if schema changes
 
 **FE**
 
@@ -243,9 +243,9 @@ Agent nên đọc skill phù hợp khi làm task chuyên biệt:
 
 ---
 
-## Tài liệu tham chiếu nhanh
+## Quick references
 
-- Envelope BE: `TelegramStorage.Application/Common/Models/ApiResponse.cs`
+- BE envelope: `TelegramStorage.Application/Common/Models/ApiResponse.cs`
 - Base controller: `BE/TelegramStorage/Controllers/BaseController.cs`
-- API client FE: `FE/src/lib/api-client.ts`
-- Ví dụ end-to-end: Folders — `FoldersController`, `folder-service.ts`, `use-folders.ts`, `admin/folders/page.tsx`
+- FE API client: `FE/src/lib/api-client.ts`
+- End-to-end example: Folders — `FoldersController`, `folder-service.ts`, `use-folders.ts`, `admin/folders/page.tsx`

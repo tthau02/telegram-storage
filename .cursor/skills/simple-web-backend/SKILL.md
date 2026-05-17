@@ -11,12 +11,12 @@ description: >-
 
 ## Layer rules
 
-| Layer | Chứa | Không chứa |
-|-------|------|------------|
-| `TelegramStorage` | Controllers, Middleware, Program.cs | Business logic, DbContext trực tiếp |
+| Layer | Contains | Must not contain |
+|-------|----------|------------------|
+| `TelegramStorage` | Controllers, Middleware, Program.cs | Business logic, direct DbContext |
 | `Application` | DTOs, `I*Service`, Validators, Options, Mappings | EF, Telegram client |
-| `Domain` | Entities kế thừa `BaseEntity` | DTO, HTTP |
-| `Infrastructure` | DbContext, Services, Repositories, Migrations | Controller |
+| `Domain` | Entities extending `BaseEntity` | DTOs, HTTP |
+| `Infrastructure` | DbContext, Services, Repositories, Migrations | Controllers |
 
 ## Controller template
 
@@ -38,12 +38,13 @@ public sealed class ExampleController : BaseController
 }
 ```
 
-- Route mặc định: `v1/api/[controller]` (từ `BaseController`).
-- Dùng `OkResponse`, `NotFoundResponse`, `FailResponse` — không tự serialize JSON.
+- Default route: `v1/api/[controller]` (from `BaseController`).
+- Use `OkResponse`, `NotFoundResponse`, `FailResponse` — do not hand-serialize JSON.
+- User-facing API messages in this codebase are **Vietnamese** — match existing strings.
 
 ## Service patterns
 
-**Ưu tiên** `AppServiceBase` + `IUnitOfWork` cho CRUD generic:
+**Prefer** `AppServiceBase` + `IUnitOfWork` for generic CRUD:
 
 ```csharp
 public sealed class XxxService : AppServiceBase, IXxxService
@@ -53,10 +54,10 @@ public sealed class XxxService : AppServiceBase, IXxxService
 }
 ```
 
-**FolderService** dùng `TelegramStorageDbContext` trực tiếp — chấp nhận khi query phức tạp (Include tree).
+**FolderService** uses `TelegramStorageDbContext` directly — acceptable for complex queries (e.g. Include tree).
 
-- Lỗi không tìm thấy: `throw new KeyNotFoundException("...")` → middleware → 404.
-- Lỗi nghiệp vụ: `InvalidOperationException` → 400.
+- Not found: `throw new KeyNotFoundException("...")` → middleware → 404.
+- Business rule violation: `InvalidOperationException` → 400.
 
 ## Validator
 
@@ -70,30 +71,30 @@ public sealed class CreateXxxValidator : AbstractValidator<CreateXxxRequest>
 }
 ```
 
-Đặt trong `Application/Validators/`. FluentValidation auto-validation đã bật trong `Program.cs`.
+Place under `Application/Validators/`. FluentValidation auto-validation is enabled in `Program.cs`.
 
 ## DI registration
 
-Thêm vào `Infrastructure/DependencyInjection.cs`:
+Add to `Infrastructure/DependencyInjection.cs`:
 
 ```csharp
 services.AddScoped<IXxxService, XxxService>();
 ```
 
-Singleton cho Telegram executor/gateway; Scoped cho DB-bound services.
+Singleton for Telegram executor/gateway; Scoped for DB-bound services.
 
 ## Entity conventions
 
 - `BaseEntity`: `Id`, audit fields, `IsDeleted` (soft delete).
 - JSON API: **camelCase** (`PropertyNamingPolicy.CamelCase`).
 
-## Không làm
+## Do not
 
-- Logic trong controller
-- Reference Infrastructure từ Application
-- Commit `telegram.session` hoặc secrets trong appsettings
+- Put logic in controllers
+- Reference Infrastructure from Application
+- Commit `telegram.session` or secrets in appsettings
 
-## Tham chiếu
+## References
 
 - `BE/TelegramStorage/Controllers/FoldersController.cs`
 - `BE/TelegramStorage.Infrastructure/Services/FolderService.cs`

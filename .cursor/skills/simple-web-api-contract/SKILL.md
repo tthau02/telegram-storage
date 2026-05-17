@@ -10,15 +10,15 @@ description: >-
 
 ## URL
 
-| Thành phần | Giá trị |
-|------------|---------|
+| Part | Value |
+|------|-------|
 | Prefix | `/v1/api` |
-| Controller | Tên class bỏ hậu tố `Controller` (`Folders` → `/v1/api/Folders`) |
-| Dev API | `http://localhost:8080` (hoặc `NEXT_PUBLIC_API_URL`) |
+| Controller | Class name without `Controller` suffix (`Folders` → `/v1/api/Folders`) |
+| Dev API | `http://localhost:8080` (or `NEXT_PUBLIC_API_URL`) |
 
 ## Response envelope
 
-Mọi JSON business response dùng `ApiResponse<T>`:
+All JSON business responses use `ApiResponse<T>`:
 
 ```typescript
 // FE — api-client.ts
@@ -31,37 +31,37 @@ type ApiEnvelope<T> = {
 };
 ```
 
-`apiFetch` trả về **`data`** khi `success === true`; ném `ApiError` khi không.
+`apiFetch` returns **`data`** when `success === true`; throws `ApiError` otherwise.
 
 ## HTTP status vs envelope
 
-- Middleware có thể trả body envelope với HTTP 404/400/500.
-- FE đọc `message`, `errors[]`, `statusCode` từ envelope khi parse JSON.
+- Middleware may return an envelope body with HTTP 404/400/500.
+- FE reads `message`, `errors[]`, `statusCode` from the envelope when parsing JSON.
 
 ## Auth flow
 
 1. `POST /v1/api/Auth/login` body `{ login, password }`.
-2. Lưu token (FE: `auth-storage`).
-3. Gọi API: `apiFetch(path, { token })` → header `Authorization: Bearer ...`.
+2. Store token (FE: `auth-storage`).
+3. Call APIs: `apiFetch(path, { token })` → header `Authorization: Bearer ...`.
 
-## Thêm endpoint mới
+## Adding a new endpoint
 
-1. **BE**: DTO trong `Application/DTOs/`, action trên controller, service method.
+1. **BE**: DTO in `Application/DTOs/`, controller action, service method.
 2. **FE**: type → service method → hook → UI.
-3. Đặt tên property **camelCase** trên wire (BE serialize camelCase).
+3. Wire properties in **camelCase** (BE serializes camelCase).
 
-## Upload đặc biệt
+## Special: upload
 
 - Cloud upload + progress: `apiUploadFormDataNdjson`.
 - Header: `X-Ndjson-Upload-Progress: 1`.
-- Stream file: range requests — xem `CloudStorageController`, `stream-file-dialog.tsx`.
+- File stream: HTTP Range — see `CloudStorageController`, `stream-file-dialog.tsx`.
 
-## Kiểm tra nhanh
+## Quick verification
 
 - Swagger dev: `/swagger`
-- So khớp path FE `BASE` với route attribute BE
+- FE service `BASE` must match BE route attributes
 
-## Tham chiếu
+## References
 
 - `BE/TelegramStorage/Controllers/BaseController.cs`
 - `BE/TelegramStorage.Application/Common/Models/ApiResponse.cs`

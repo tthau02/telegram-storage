@@ -8,16 +8,16 @@ description: >-
 
 # Simple Web — Frontend
 
-## Next.js 16 (bắt buộc đọc trước)
+## Next.js 16 (read first)
 
-Dự án dùng **Next.js 16** — API có thể khác training data. Trước khi code:
+This project uses **Next.js 16** — APIs may differ from training data. Before coding:
 
-1. Đọc guide trong `FE/node_modules/next/dist/docs/` cho feature đang dùng.
-2. Tuân thủ deprecation trong docs đó.
+1. Read guides in `FE/node_modules/next/dist/docs/` for the feature you touch.
+2. Follow deprecations in those docs.
 
-`FE/AGENTS.md` nhắc điều này.
+`FE/AGENTS.md` repeats this warning.
 
-## Cấu trúc route
+## Route structure
 
 ```
 src/app/
@@ -27,11 +27,11 @@ src/app/
   layout.tsx                 # AppProviders, Inter font, lang=vi
 ```
 
-## Thêm API consumer (chuẩn dự án)
+## Adding an API consumer (project standard)
 
 ### 1. Types — `src/types/xxx.ts`
 
-Mirror DTO BE (PascalCase BE → camelCase TS).
+Mirror BE DTOs (BE PascalCase → TS camelCase on the wire).
 
 ### 2. Service — `src/services/xxx-service.ts`
 
@@ -72,33 +72,33 @@ export function useXxxListQuery(token?: string) {
 }
 ```
 
-- `onSuccess`: `invalidateQueries` + `toast.success` (tiếng Việt).
+- `onSuccess`: `invalidateQueries` + `toast.success` (**Vietnamese** copy).
 - `onError`: `err instanceof ApiError` → `toast.error`.
 
-### 4. Page — `"use client"` khi dùng hooks
+### 4. Page — `"use client"` when using hooks
 
-Lấy token từ `getAuthToken()` / pattern hiện có trong admin pages.
+Get token via `getAuthToken()` / existing admin page patterns.
 
 ## UI components
 
 - Primitives: `src/components/ui/` (shadcn).
 - Shared admin: `src/components/shared/common/`.
-- Class merge: `cn()` từ `@/lib/utils`.
-- Auth / brand surfaces: class `ds-*` — xem skill `simple-web-ui`.
+- Class merge: `cn()` from `@/lib/utils`.
+- Auth / brand surfaces: `ds-*` classes — see skill `simple-web-ui`.
 
 ## State
 
-| Loại | Công cụ |
-|------|---------|
+| Kind | Tool |
+|------|------|
 | Server/API | React Query |
 | Theme, UI chrome | Redux (`store/slices/`) |
 
-Không duplicate server state trong Redux.
+Do not duplicate server state in Redux.
 
 ## Env
 
-- `NEXT_PUBLIC_API_URL` — base API (dev: `http://localhost:8080`).
-- Copy từ `FE/.env.local.example`.
+- `NEXT_PUBLIC_API_URL` — API base (dev: `http://localhost:8080`).
+- Copy from `FE/.env.local.example`.
 
 ## Scripts
 
@@ -108,7 +108,7 @@ npm run dev:turbo         # turbopack
 npm run lint
 ```
 
-## Tham chiếu
+## References
 
 - `FE/src/hooks/api/use-folders.ts`
 - `FE/src/services/folder-service.ts`

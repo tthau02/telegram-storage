@@ -1,8 +1,8 @@
 # BE — Agent notes
 
-Đọc trước: [`../AGENTS.md`](../AGENTS.md) · Chi tiết: [`../CLAUDE.md`](../CLAUDE.md)
+Read first: [`../AGENTS.md`](../AGENTS.md) · Detail: [`../CLAUDE.md`](../CLAUDE.md)
 
 - Clean Architecture: `TelegramStorage` (API) → `Application` → `Domain` ← `Infrastructure`
-- Chạy: `dotnet run --project TelegramStorage` (từ `BE/`)
-- Route: `v1/api/[controller]`, response `ApiResponse<T>`, lỗi qua `ExceptionHandlingMiddleware`
-- Migration: `dotnet ef migrations add ... --project TelegramStorage.Infrastructure --startup-project TelegramStorage`
+- Run: `dotnet run --project TelegramStorage` (from `BE/`)
+- Routes: `v1/api/[controller]`, responses `ApiResponse<T>`, errors via `ExceptionHandlingMiddleware`
+- Migrations: `dotnet ef migrations add ... --project TelegramStorage.Infrastructure --startup-project TelegramStorage`

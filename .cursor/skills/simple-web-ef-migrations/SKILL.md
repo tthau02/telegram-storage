@@ -8,15 +8,15 @@ description: >-
 
 # EF Core Migrations
 
-## Vị trí
+## Locations
 
 - DbContext: `BE/TelegramStorage.Infrastructure/Data/TelegramStorageDbContext.cs`
 - Migrations: `BE/TelegramStorage.Infrastructure/Migrations/`
 - Startup host (design-time): `BE/TelegramStorage/`
 
-## Tạo migration
+## Create a migration
 
-Từ thư mục `BE/`:
+From `BE/`:
 
 ```bash
 dotnet ef migrations add <MigrationName> \
@@ -24,12 +24,12 @@ dotnet ef migrations add <MigrationName> \
   --startup-project TelegramStorage
 ```
 
-Đặt tên mô tả: `AddFolderStarred`, `AlterCloudFileMimeType`.
+Use descriptive names: `AddFolderStarred`, `AlterCloudFileMimeType`.
 
-## Áp dụng
+## Apply
 
-- **Tự động** khi API chạy: `Program.cs` gọi `db.Database.MigrateAsync()`.
-- **Thủ công**:
+- **Automatic** on API start: `Program.cs` calls `db.Database.MigrateAsync()`.
+- **Manual**:
 
 ```bash
 dotnet ef database update \
@@ -37,25 +37,25 @@ dotnet ef database update \
   --startup-project TelegramStorage
 ```
 
-## Entity changes checklist
+## Entity change checklist
 
-1. Sửa entity trong `Domain/Entities/`.
-2. Cấu hình relationship trong `OnModelCreating` nếu cần.
-3. Tạo migration.
-4. Review file migration generated — không sửa tay trừ khi hiểu rõ.
-5. Cập nhật DTO/mapping/service nếu schema đổi.
+1. Edit entity in `Domain/Entities/`.
+2. Configure relationships in `OnModelCreating` if needed.
+3. Add migration.
+4. Review generated migration — avoid hand-edits unless you understand the impact.
+5. Update DTOs/mapping/services if schema changed.
 
 ## Connection string
 
-- Local/Docker: `ConnectionStrings:DefaultConnection` trong appsettings hoặc env.
-- Docker compose: xem `BE/docker-compose.yml`.
+- Local/Docker: `ConnectionStrings:DefaultConnection` in appsettings or environment.
+- Docker compose: see `BE/docker-compose.yml`.
 
-## Không làm
+## Do not
 
-- Xóa migration đã deploy production mà không có kế hoạch rollback
-- Commit password thật trong appsettings
+- Remove migrations already deployed to production without a rollback plan
+- Commit real passwords in appsettings
 
-## Tham chiếu
+## References
 
 - `BE/TelegramStorage.Infrastructure/Migrations/`
 - `BE/TelegramStorage/Program.cs` (MigrateAsync block)
