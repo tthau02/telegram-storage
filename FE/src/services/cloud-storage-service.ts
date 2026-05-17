@@ -38,11 +38,16 @@ export const cloudStorageService = {
   upload(
     file: File,
     token?: string,
+    folderId?: number | null,
     onProgress?: (ev: CloudUploadProgressEvent) => void,
   ): Promise<CloudFileDto> {
     const body = new FormData();
     body.append("file", file);
-    return apiUploadFormDataNdjson<CloudFileDto>(`${BASE}/upload`, body, {
+    let url = `${BASE}/upload`;
+    if (folderId != null) {
+      url += `?folderId=${folderId}`;
+    }
+    return apiUploadFormDataNdjson<CloudFileDto>(url, body, {
       token,
       onProgress,
     });

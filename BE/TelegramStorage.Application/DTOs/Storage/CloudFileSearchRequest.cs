@@ -21,4 +21,10 @@ public sealed class CloudFileSearchRequest : PagedAndSortedRequest
 
     /// <summary>Lọc file từng được mirror từ URL chứa chuỗi này (TrafficLogs).</summary>
     public string? SourceUrl { get; init; }
+
+    /// <summary>Lọc theo thư mục cụ thể.</summary>
+    public long? FolderId { get; init; }
+
+    /// <summary>Chỉ lấy file không thuộc thư mục nào (FolderId == null).</summary>
+    public bool RootFilesOnly { get; init; }
 }

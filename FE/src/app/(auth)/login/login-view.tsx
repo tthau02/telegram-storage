@@ -16,6 +16,7 @@ import { ApiError } from "@/lib/api-client";
 import {
   AUTH_ACCESS_TOKEN_KEY,
   AUTH_TOKEN_EXPIRY_KEY,
+  AUTH_USER_KEY,
 } from "@/lib/auth-storage";
 import { toast } from "sonner";
 
@@ -50,6 +51,14 @@ export function LoginView() {
           if (typeof window !== "undefined") {
             localStorage.setItem(AUTH_ACCESS_TOKEN_KEY, data.accessToken);
             localStorage.setItem(AUTH_TOKEN_EXPIRY_KEY, data.expiresAtUtc);
+            localStorage.setItem(
+              AUTH_USER_KEY,
+              JSON.stringify({
+                userName: data.user.userName,
+                fullName: data.user.fullName,
+                avatar: data.user.avatar,
+              }),
+            );
           }
           setLoginVal("");
           setPassword("");

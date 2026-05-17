@@ -34,6 +34,7 @@ public static class DependencyInjection
         services.AddSingleton<IRemoteMediaPullService, RemoteMediaPullService>();
         services.AddSingleton<IThumbnailService, ThumbnailService>();
         services.AddScoped<ICloudStorageService, CloudStorageService>();
+        services.AddScoped<IFolderService, FolderService>();
 
         services.AddDbContext<TelegramStorageDbContext>((sp, options) =>
         {

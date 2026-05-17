@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Cloud, Users } from "lucide-react";
+import { Cloud, FolderOpen, Users } from "lucide-react";
 import { adminRoutes } from "@/config/routes";
 
 /**
@@ -76,6 +76,12 @@ export const adminNavTree: AdminNavItem[] = [
     href: adminRoutes.cloud,
     icon: Cloud,
     permissions: ["users.read"],
+  },
+  {
+    id: "folders",
+    label: "Thư mục",
+    href: adminRoutes.folders,
+    icon: FolderOpen,
   },
   {
     id: "users",

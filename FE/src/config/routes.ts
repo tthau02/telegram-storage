@@ -24,6 +24,7 @@ export const adminRoutes = {
   home: adminRoot,
   users: `${adminRoot}/users`,
   cloud: `${adminRoot}/cloud`,
+  folders: `${adminRoot}/folders`,
 } as const;
 
 export type ClientRouteKey = keyof typeof clientRoutes;

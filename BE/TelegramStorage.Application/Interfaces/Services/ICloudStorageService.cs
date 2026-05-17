@@ -11,6 +11,7 @@ public interface ICloudStorageService
         string? contentType,
         long? contentLength,
         long? userId,
+        long? folderId = null,
         IProgress<TelegramUploadProgress>? telegramUploadProgress = null,
         CancellationToken cancellationToken = default);
 
@@ -20,6 +21,8 @@ public interface ICloudStorageService
 
     Task<PagedResult<CloudFileDto>> SearchAsync(
         CloudFileSearchRequest request,
+        long? userId,
+        bool isAdmin,
         CancellationToken cancellationToken = default);
 
     /// <summary>Xóa mềm trong DB và cố gắng xóa tin nhắn document trên Telegram.</summary>

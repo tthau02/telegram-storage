@@ -19,4 +19,6 @@ public class CloudFileDto
     public string? ThumbnailUrl { get; init; }
 
     public DateTimeOffset CreatedAt { get; init; }
+
+    public long? FolderId { get; init; }
 }

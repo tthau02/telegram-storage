@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import {
   Bell,
@@ -22,6 +29,7 @@ import { authService } from "@/services/auth-service";
 import {
   clearAuthStorage,
   getStoredAccessToken,
+  getStoredUser,
 } from "@/lib/auth-storage";
 import { cn } from "@/lib/utils";
 
@@ -43,7 +51,9 @@ function AdminThemeToggle() {
         checked={dark}
         onCheckedChange={(on) => setTheme(on ? "dark" : "light")}
         size="sm"
-        aria-label={dark ? "Đang dùng giao diện tối" : "Đang dùng giao diện sáng"}
+        aria-label={
+          dark ? "Đang dùng giao diện tối" : "Đang dùng giao diện sáng"
+        }
       />
       <Moon
         className="size-4 shrink-0 text-muted-foreground"
@@ -65,6 +75,18 @@ export function AdminHeader() {
     right: number;
   } | null>(null);
   const menuId = useId();
+
+  const [userDisplay] = useState(() => {
+    const u = getStoredUser();
+    if (!u) return { displayName: "Quản trị viên", initials: "QT" };
+    const displayName = u.fullName || u.userName || "Quản trị viên";
+    const initials = (u.fullName || u.userName || "QT")
+      .split(" ")
+      .map((s) => s.charAt(0).toUpperCase())
+      .slice(0, 2)
+      .join("");
+    return { displayName, initials };
+  });
 
   const updateMenuPlacement = useCallback(() => {
     if (!triggerRef.current) return;
@@ -170,10 +192,10 @@ export function AdminHeader() {
                 className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand-house text-[10px] font-bold text-(--text-on-dark) shadow-sm"
                 aria-hidden
               >
-                QT
+                {userDisplay.initials}
               </div>
               <span className="hidden max-w-[100px] truncate text-sm font-medium tracking-tight text-foreground lg:inline">
-                Quản trị viên
+                {userDisplay.displayName}
               </span>
               <ChevronDown
                 className={cn(
@@ -203,7 +225,7 @@ export function AdminHeader() {
                         Tài khoản
                       </p>
                       <p className="truncate text-sm font-medium text-foreground">
-                        Quản trị viên
+                        {userDisplay.displayName}
                       </p>
                       <p className="truncate text-xs text-muted-foreground">
                         {branding.appNameShort}
@@ -216,7 +238,10 @@ export function AdminHeader() {
                       className={menuItemClass}
                       onClick={() => setMenuOpen(false)}
                     >
-                      <User className="size-4 shrink-0 opacity-70" aria-hidden />
+                      <User
+                        className="size-4 shrink-0 opacity-70"
+                        aria-hidden
+                      />
                       Hồ sơ cá nhân
                     </Link>
                     <Link

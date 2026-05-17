@@ -32,7 +32,8 @@ public sealed class CloudStorageController : BaseController
     [RequestSizeLimit(long.MaxValue)]
     public async Task<IActionResult> UploadLocal(
         IFormFile file,
-        CancellationToken cancellationToken)
+        [FromQuery] long? folderId = null,
+        CancellationToken cancellationToken = default)
     {
         if (file is null || file.Length == 0)
         {
@@ -48,6 +49,7 @@ public sealed class CloudStorageController : BaseController
                     file.ContentType,
                     file.Length,
                     CurrentUserId,
+                    folderId,
                     telegramUploadProgress: null,
                     cancellationToken)
                 .ConfigureAwait(false);
@@ -59,6 +61,7 @@ public sealed class CloudStorageController : BaseController
                 file.FileName,
                 file.ContentType,
                 file.Length,
+                folderId,
                 cancellationToken)
             .ConfigureAwait(false);
     }
@@ -75,6 +78,7 @@ public sealed class CloudStorageController : BaseController
         string fileName,
         string contentType,
         long contentLength,
+        long? folderId,
         CancellationToken cancellationToken)
     {
         Response.StatusCode = 200;
@@ -108,6 +112,7 @@ public sealed class CloudStorageController : BaseController
                     contentType,
                     contentLength,
                     CurrentUserId,
+                    folderId,
                     progress,
                     cancellationToken)
                 .ConfigureAwait(false);
@@ -160,15 +165,19 @@ public sealed class CloudStorageController : BaseController
         [FromQuery] CloudFileSearchRequest request,
         CancellationToken cancellationToken)
     {
-        var page = await _storage.SearchAsync(request, cancellationToken).ConfigureAwait(false);
+        var isAdmin = User.IsInRole("admin");
+        var page = await _storage.SearchAsync(request, CurrentUserId, isAdmin, cancellationToken).ConfigureAwait(false);
         return OkResponse(page);
     }
 
     [HttpPost("mirror")]
     public async Task<ActionResult<ApiResponse<CloudFileDto>>> Mirror(
         [FromBody] MirrorUploadRequest request,
-        CancellationToken cancellationToken)
+        [FromQuery] long? folderId = null,
+        CancellationToken cancellationToken = default)
     {
+        if (folderId.HasValue)
+            request.FolderId = folderId;
         var dto = await _storage.UploadFromUrlAsync(request, CurrentUserId, cancellationToken).ConfigureAwait(false);
         return OkResponse(dto);
     }

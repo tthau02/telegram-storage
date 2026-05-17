@@ -9,6 +9,7 @@ export type CloudFileDto = {
   thumbnailUrl?: string | null;
   /** Giống User: ISO 8601 từ `DateTimeOffset` (JSON). */
   createdAt: string;
+  folderId?: number | null;
 };
 
 export type CloudFileSearchParams = {
@@ -23,6 +24,8 @@ export type CloudFileSearchParams = {
   createdFrom?: string;
   createdTo?: string;
   sourceUrl?: string;
+  folderId?: number | null;
+  rootFilesOnly?: boolean;
 };
 
 export type PagedResult<T> = {

@@ -52,8 +52,9 @@ export function useUploadCloudFileMutation(token?: string) {
   return useMutation({
     mutationFn: (vars: {
       file: File;
+      folderId?: number | null;
       onProgress?: (ev: CloudUploadProgressEvent) => void;
-    }) => cloudStorageService.upload(vars.file, token, vars.onProgress),
+    }) => cloudStorageService.upload(vars.file, token, vars.folderId, vars.onProgress),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.cloudFiles.all });
     },

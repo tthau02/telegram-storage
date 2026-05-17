@@ -40,6 +40,7 @@ public sealed class CloudStorageService : ICloudStorageService
         string? contentType,
         long? contentLength,
         long? userId,
+        long? folderId = null,
         IProgress<TelegramUploadProgress>? telegramUploadProgress = null,
         CancellationToken cancellationToken = default) =>
         UploadCoreAsync(
@@ -48,6 +49,7 @@ public sealed class CloudStorageService : ICloudStorageService
             contentType,
             contentLength,
             userId,
+            folderId,
             trafficAction: "UploadLocal",
             sourceUrl: null,
             telegramUploadProgress,
@@ -82,6 +84,7 @@ public sealed class CloudStorageService : ICloudStorageService
                 remote.ContentType,
                 remote.ContentLength,
                 userId,
+                request.FolderId,
                 trafficAction: "UploadMirror",
                 sourceUrl: request.Url,
                 telegramUploadProgress: null,
@@ -95,11 +98,15 @@ public sealed class CloudStorageService : ICloudStorageService
         string? contentType,
         long? contentLength,
         long? userId,
+        long? folderId,
         string trafficAction,
         string? sourceUrl,
         IProgress<TelegramUploadProgress>? telegramUploadProgress,
         CancellationToken cancellationToken)
     {
+        if (userId is null)
+            throw new UnauthorizedAccessException("User ID is required to upload a file.");
+
         await _telegram.EnsureOperationalAsync(cancellationToken).ConfigureAwait(false);
 
         var mime = string.IsNullOrWhiteSpace(contentType) ? "application/octet-stream" : contentType!;
@@ -161,6 +168,8 @@ public sealed class CloudStorageService : ICloudStorageService
             var entity = new CloudFile
             {
                 FileName = fileName,
+                OwnerId = userId.Value,
+                FolderId = folderId,
                 TelegramMessageId = originalMessageId,
                 FileHash = hashHex,
                 FileSize = size,
@@ -223,9 +232,17 @@ public sealed class CloudStorageService : ICloudStorageService
 
     public async Task<PagedResult<CloudFileDto>> SearchAsync(
         CloudFileSearchRequest request,
+        long? userId,
+        bool isAdmin,
         CancellationToken cancellationToken = default)
     {
         var query = _db.CloudFiles.AsNoTracking().WhereNotDeleted();
+
+        if (!isAdmin)
+        {
+            query = query.Where(f => f.OwnerId == userId);
+        }
+
         query = ApplyCloudFileSearch(query, request);
 
         var page = await query
@@ -454,6 +471,15 @@ public sealed class CloudStorageService : ICloudStorageService
                 t.SourceUrl.Contains(s)));
         }
 
+        if (r.FolderId.HasValue)
+        {
+            query = query.Where(f => f.FolderId == r.FolderId.Value);
+        }
+        else if (r.RootFilesOnly)
+        {
+            query = query.Where(f => f.FolderId == null);
+        }
+
         return query;
     }
 
@@ -469,6 +495,7 @@ public sealed class CloudStorageService : ICloudStorageService
             ThumbnailFileId = e.ThumbnailFileId,
             ThumbnailUrl = e.ThumbnailUrl,
             CreatedAt = e.CreatedAt,
+            FolderId = e.FolderId,
         };
 
     private static bool TryParseSingleRange(string? rangeHeader, long totalLength, out long start, out long end)
