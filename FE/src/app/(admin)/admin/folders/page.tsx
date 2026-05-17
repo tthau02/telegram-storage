@@ -648,8 +648,8 @@ export default function AdminFoldersPage() {
                       className="flex flex-1 flex-col items-center justify-center gap-1 px-2 pb-3 pt-4"
                       onClick={() => setCurrentFolderId(folder.id)}
                     >
-                      <div className="flex size-20 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-950/30">
-                        <Folder className="size-12 text-amber-500/80" />
+                      <div className="relative flex size-20 items-center justify-center overflow-visible rounded-xl bg-amber-50 dark:bg-amber-950/30">
+                        <Folder className="absolute inset-0 m-auto w-28 h-28 text-amber-500/80" />
                       </div>
                     </button>
 
