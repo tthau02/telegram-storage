@@ -281,7 +281,6 @@ export default function AdminFoldersPage() {
   const createMutation = useCreateFolderMutation(token);
   const renameMutation = useRenameFolderMutation(token);
   const deleteMutation = useDeleteFolderMutation(token);
-  const uploadMutation = useUploadCloudFileMutation(token);
 
   const [currentFolderId, setCurrentFolderId] = useState<number | null>(null);
   const [expandedFolders, setExpandedFolders] = useState<Set<number>>(
