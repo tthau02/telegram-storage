@@ -148,7 +148,10 @@ function FileCard({
     let localUrl: string | null = null;
     (async () => {
       try {
-        const blob = await cloudStorageService.fetchThumbnailBlob(file.id, token);
+        const blob = await cloudStorageService.fetchThumbnailBlob(
+          file.id,
+          token,
+        );
         if (ac.signal.aborted) return;
         if (blob.size > 0 && blob.size < 2000) {
           setUseExtensionTile(true);
@@ -279,7 +282,6 @@ export default function AdminFoldersPage() {
   const renameMutation = useRenameFolderMutation(token);
   const deleteMutation = useDeleteFolderMutation(token);
   const uploadMutation = useUploadCloudFileMutation(token);
-  const deleteFileMutation = useDeleteCloudFileMutation(token);
 
   const [currentFolderId, setCurrentFolderId] = useState<number | null>(null);
   const [expandedFolders, setExpandedFolders] = useState<Set<number>>(
@@ -306,7 +308,9 @@ export default function AdminFoldersPage() {
   const [renameName, setRenameName] = useState("");
 
   const [deleteTarget, setDeleteTarget] = useState<FolderDto | null>(null);
-  const [deleteFileTarget, setDeleteFileTarget] = useState<CloudFileDto | null>(null);
+  const [deleteFileTarget, setDeleteFileTarget] = useState<CloudFileDto | null>(
+    null,
+  );
   const [streamTarget, setStreamTarget] = useState<CloudFileDto | null>(null);
   const [streamOpen, setStreamOpen] = useState(false);
   const [uploadPercent, setUploadPercent] = useState<number | null>(null);
@@ -381,10 +385,13 @@ export default function AdminFoldersPage() {
     deleteFileMutation.mutate(deleteFileTarget.id, {
       onSuccess: () => {
         setDeleteFileTarget(null);
-        toast.success("Đã xóa file", { description: deleteFileTarget.fileName });
+        toast.success("Đã xóa file", {
+          description: deleteFileTarget.fileName,
+        });
       },
       onError: (err) => {
-        const msg = err instanceof ApiError ? err.message : "Xóa file thất bại.";
+        const msg =
+          err instanceof ApiError ? err.message : "Xóa file thất bại.";
         toast.error("Xóa file thất bại", { description: msg });
       },
     });
@@ -661,7 +668,9 @@ export default function AdminFoldersPage() {
                         type="button"
                         className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm transition-colors hover:bg-muted"
                         onClick={() => {
-                          document.getElementById(menuId)?.classList.add("hidden");
+                          document
+                            .getElementById(menuId)
+                            ?.classList.add("hidden");
                           handleOpenRename(folder);
                         }}
                       >
@@ -672,7 +681,9 @@ export default function AdminFoldersPage() {
                         type="button"
                         className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-destructive transition-colors hover:bg-destructive/10"
                         onClick={() => {
-                          document.getElementById(menuId)?.classList.add("hidden");
+                          document
+                            .getElementById(menuId)
+                            ?.classList.add("hidden");
                           setDeleteTarget(folder);
                         }}
                       >
@@ -835,7 +846,8 @@ export default function AdminFoldersPage() {
         <AlertDialogContent>
           <AlertDialogTitle>Xóa file?</AlertDialogTitle>
           <AlertDialogDescription>
-            Bạn có chắc muốn xóa file <strong>{deleteFileTarget?.fileName}</strong>?
+            Bạn có chắc muốn xóa file{" "}
+            <strong>{deleteFileTarget?.fileName}</strong>?
           </AlertDialogDescription>
           <AlertDialogFooter>
             <AlertDialogCancel>Huỷ</AlertDialogCancel>
