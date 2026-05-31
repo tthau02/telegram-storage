@@ -2,11 +2,13 @@
 using System.Text.Json;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using TelegramStorage.Application;
 using TelegramStorage.Application.Options;
+using TelegramStorage.Domain.Entities;
 using TelegramStorage.Infrastructure;
 using TelegramStorage.Infrastructure.Data;
 using TelegramStorage.Infrastructure.Services;
@@ -115,6 +117,8 @@ using (var scope = app.Services.CreateScope())
     var log = sp.GetService<ILoggerFactory>();
     var logger = log?.CreateLogger("Database");
     await RoleDataSeeder.SeedAsync(db, logger, CancellationToken.None);
+    var passwordHasher = sp.GetRequiredService<IPasswordHasher<User>>();
+    await AdminUserSeeder.SeedAsync(db, passwordHasher, logger, CancellationToken.None);
 }
 
 if (app.Environment.IsDevelopment())

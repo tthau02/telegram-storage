@@ -33,6 +33,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Card, CardContent } from "@/components/ui/card";
 import { Field, FieldContent, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -122,14 +129,12 @@ function getChildFolders(
 function FileCard({
   file,
   kind,
-  menuId,
   token,
   onView,
   onDelete,
 }: {
   file: CloudFileDto;
   kind: ReturnType<typeof fileKind>;
-  menuId: string;
   token?: string;
   onView: () => void;
   onDelete: () => void;
@@ -178,99 +183,71 @@ function FileCard({
   }, [file.id, file.thumbnailFileId, token]);
 
   return (
-    <div className="group relative flex flex-col rounded-xl border border-border bg-card shadow-sm transition-all hover:border-muted-foreground/30 hover:shadow-md">
-      <div className="flex items-center justify-between gap-1 px-2 pt-2">
-        <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
-          {file.fileName}
-        </span>
-        <button
-          type="button"
-          className="flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-opacity hover:bg-muted group-hover:opacity-100"
-          aria-label={`Thao tác cho ${file.fileName}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            document.getElementById(menuId)?.classList.toggle("hidden");
-          }}
-        >
-          <MoreVertical className="size-3.5" />
-        </button>
-      </div>
-
-      <button
-        type="button"
-        className="flex flex-1 flex-col items-center justify-center gap-1 px-2 pb-3 pt-4"
+    <Card className="group relative flex flex-col overflow-hidden transition-all hover:shadow-md border-border/50 hover:border-primary/30">
+      <div 
+        className="relative aspect-video w-full bg-muted/60 overflow-hidden flex items-center justify-center cursor-pointer"
         onClick={onView}
       >
-        <div className="flex size-20 items-center justify-center overflow-hidden rounded-xl bg-muted/60">
-          {thumbnailBlobUrl ? (
-            <img
-              src={thumbnailBlobUrl}
-              alt={`Thumbnail ${file.fileName}`}
-              className="h-full w-full object-cover"
-            />
-          ) : useExtensionTile ? (
-            <div className="flex h-full w-full flex-col items-center justify-center bg-muted text-xs font-semibold tracking-wide text-black">
-              <File className="mb-0.5 size-4" aria-hidden />
-              <span>{fileExtensionLabel(file.fileName)}</span>
-            </div>
-          ) : (
-            <>
-              {kind === "image" ? (
-                <FileImage className="size-12 text-sky-500/80" />
-              ) : kind === "video" ? (
-                <FileVideo className="size-12 text-purple-500/80" />
-              ) : (
-                <File className="size-12 text-muted-foreground/70" />
-              )}
-            </>
-          )}
+        {thumbnailBlobUrl ? (
+          <img
+            src={thumbnailBlobUrl}
+            alt={`Thumbnail ${file.fileName}`}
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+        ) : useExtensionTile ? (
+          <div className="flex h-full w-full flex-col items-center justify-center bg-muted text-xs font-semibold tracking-wide text-black">
+            <File className="mb-1.5 size-8 text-muted-foreground/80" aria-hidden />
+            <span>{fileExtensionLabel(file.fileName)}</span>
+          </div>
+        ) : (
+          <div className="transition-transform duration-300 group-hover:scale-110">
+            {kind === "image" ? (
+              <FileImage className="size-16 text-sky-500/80 drop-shadow-sm" />
+            ) : kind === "video" ? (
+              <FileVideo className="size-16 text-purple-500/80 drop-shadow-sm" />
+            ) : (
+              <File className="size-16 text-muted-foreground/60 drop-shadow-sm" />
+            )}
+          </div>
+        )}
+        
+        {/* DropdownMenu overlay */}
+        <div className="absolute right-2 top-2 z-10 opacity-0 transition-opacity group-hover:opacity-100" onClick={(e) => e.stopPropagation()}>
+          <DropdownMenu>
+            <DropdownMenuTrigger className={cn(buttonVariants({ variant: "secondary", size: "icon" }), "size-7 bg-background/80 hover:bg-background shadow-sm backdrop-blur-sm")}>
+              <MoreVertical className="size-3.5" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuItem onClick={onView}>
+                <File className="mr-2 size-3.5" />
+                Xem
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                toast.info("Thông tin file", {
+                  description: `${file.fileName}\nKích thước: ${formatFileSizeBytes(file.fileSize)}\nLoại: ${file.mimeType}\nNgày tạo: ${new Date(file.createdAt).toLocaleString("vi-VN")}`,
+                });
+              }}>
+                <File className="mr-2 size-3.5" />
+                Thông tin
+              </DropdownMenuItem>
+              <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={onDelete}>
+                <Trash2 className="mr-2 size-3.5" />
+                Xóa
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-        <span className="text-xs text-muted-foreground">
-          {formatFileSizeBytes(file.fileSize)}
-        </span>
-      </button>
-
-      <div
-        id={menuId}
-        className="hidden absolute right-2 top-10 z-50 min-w-[10rem] rounded-xl border border-border bg-popover py-1.5 text-popover-foreground shadow-lg"
-      >
-        <button
-          type="button"
-          className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm transition-colors hover:bg-muted"
-          onClick={() => {
-            document.getElementById(menuId)?.classList.add("hidden");
-            onView();
-          }}
-        >
-          <File className="size-3.5" />
-          Xem
-        </button>
-        <button
-          type="button"
-          className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm transition-colors hover:bg-muted"
-          onClick={() => {
-            document.getElementById(menuId)?.classList.add("hidden");
-            toast.info("Thông tin file", {
-              description: `${file.fileName}\nKích thước: ${formatFileSizeBytes(file.fileSize)}\nLoại: ${file.mimeType}\nNgày tạo: ${new Date(file.createdAt).toLocaleString("vi-VN")}`,
-            });
-          }}
-        >
-          <File className="size-3.5" />
-          Thông tin
-        </button>
-        <button
-          type="button"
-          className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-destructive transition-colors hover:bg-destructive/10"
-          onClick={() => {
-            document.getElementById(menuId)?.classList.add("hidden");
-            onDelete();
-          }}
-        >
-          <Trash2 className="size-3.5" />
-          Xóa
-        </button>
       </div>
-    </div>
+      
+      <CardContent className="p-3 pt-3 flex flex-col gap-0.5">
+        <h4 className="truncate text-sm font-semibold text-foreground" title={file.fileName}>
+          {file.fileName}
+        </h4>
+        <p className="text-xs text-muted-foreground">
+          {formatFileSizeBytes(file.fileSize)}
+        </p>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -451,26 +428,26 @@ export default function AdminFoldersPage() {
               if (hasChildren) toggleExpand(f.id);
             }}
             className={cn(
-              "flex w-full items-center gap-1.5 rounded-lg px-2 py-1.5 text-left text-sm transition-colors hover:bg-muted",
-              isActive && "bg-muted font-medium",
+              "flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent/80",
+              isActive ? "bg-accent text-accent-foreground font-semibold" : "text-muted-foreground hover:text-foreground",
             )}
             style={{ paddingLeft: `${12 + depth * 16}px` }}
           >
             {hasChildren ? (
               <ChevronRight
                 className={cn(
-                  "size-3.5 shrink-0 text-muted-foreground transition-transform",
+                  "size-3.5 shrink-0 text-muted-foreground/70 transition-transform",
                   isExpanded && "rotate-90",
                 )}
               />
             ) : (
               <span className="size-3.5 shrink-0" />
             )}
-            <Folder className="size-4 shrink-0 text-muted-foreground" />
+            <Folder className={cn("size-4 shrink-0", isActive ? "text-primary" : "text-muted-foreground/70")} />
             <span className="truncate">{f.name}</span>
           </button>
           {hasChildren && isExpanded && (
-            <div>{renderFolderTreeNode(f.id, depth + 1)}</div>
+            <div className="mt-0.5">{renderFolderTreeNode(f.id, depth + 1)}</div>
           )}
         </div>
       );
@@ -521,48 +498,41 @@ export default function AdminFoldersPage() {
       <CommonHeader {...pageHeader} />
 
       <div className="flex min-h-0 flex-1 gap-4">
-        <aside className="hidden w-60 shrink-0 flex-col rounded-xl border border-border bg-card shadow-sm lg:flex">
-          <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
+        {/* Sidebar */}
+        <aside className="hidden w-64 shrink-0 flex-col rounded-xl border border-border bg-card shadow-sm lg:flex">
+          <div className="flex items-center justify-between border-b border-border/50 bg-muted/20 px-4 py-3">
             <span className="text-sm font-semibold tracking-tight">
-              Thư mục
+              Cây thư mục
             </span>
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
               onClick={() => handleOpenCreate(null)}
-              className="flex size-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              aria-label="Tạo thư mục mới"
+              title="Tạo thư mục mới"
             >
               <Plus className="size-4" />
-            </button>
+            </Button>
           </div>
-          <ScrollArea className="flex-1 px-1.5 pb-1.5">
+          <ScrollArea className="flex-1 px-2 py-2">
             {isLoading ? (
               <p className="p-2 text-xs text-muted-foreground">Đang tải…</p>
             ) : (
-              <div className="space-y-0.5 pt-1">
+              <div className="space-y-0.5">
                 <button
                   type="button"
                   onClick={() => setCurrentFolderId(null)}
                   className={cn(
-                    "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm transition-colors",
+                    "flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm transition-colors",
                     currentFolderId === null
-                      ? "bg-muted font-semibold text-foreground"
-                      : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                      ? "bg-primary/10 font-semibold text-primary"
+                      : "text-muted-foreground hover:bg-accent/80 hover:text-foreground",
                   )}
                 >
-                  <div
-                    className={cn(
-                      "flex size-6 items-center justify-center rounded-lg transition-colors",
-                      currentFolderId === null
-                        ? "bg-primary/15 text-primary"
-                        : "bg-muted-foreground/10 text-muted-foreground",
-                    )}
-                  >
-                    <FolderOpen className="size-4" />
-                  </div>
+                  <FolderOpen className="size-4.5" />
                   <span className="truncate">Thư mục gốc</span>
                 </button>
-                <div className="ml-1 border-l border-border/40 pl-1">
+                <div className="ml-1 border-l border-border/60 pl-1 mt-1">
                   {renderFolderTreeNode(null, 0)}
                 </div>
               </div>
@@ -570,22 +540,25 @@ export default function AdminFoldersPage() {
           </ScrollArea>
         </aside>
 
+        {/* Main Content */}
         <div className="flex min-w-0 flex-1 flex-col gap-4">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          {/* Breadcrumb */}
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground bg-card border border-border/50 px-3 py-2.5 rounded-lg shadow-sm">
             <button
               type="button"
               onClick={() => setCurrentFolderId(null)}
-              className="transition-colors hover:text-foreground"
+              className="transition-colors hover:text-foreground font-medium flex items-center gap-1.5"
             >
-              Thư mục gốc
+              <FolderOpen className="size-4" />
+              Gốc
             </button>
             {breadcrumbs.map((crumb) => (
-              <span key={crumb.id} className="flex items-center gap-2">
-                <ChevronRight className="size-3.5 shrink-0" />
+              <span key={crumb.id} className="flex items-center gap-1.5">
+                <ChevronRight className="size-3.5 shrink-0 text-muted-foreground/60" />
                 <button
                   type="button"
                   onClick={() => setCurrentFolderId(crumb.id)}
-                  className="transition-colors hover:text-foreground"
+                  className="transition-colors hover:text-foreground font-medium"
                 >
                   {crumb.name}
                 </button>
@@ -598,113 +571,80 @@ export default function AdminFoldersPage() {
               Đang tải…
             </div>
           ) : isEmpty ? (
-            <div className="flex flex-1 flex-col items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
-              <FolderOpen className="size-12 opacity-30" />
-              <p>Thư mục trống</p>
-              <div className="flex gap-2">
+            <div className="flex flex-1 flex-col items-center justify-center gap-4 py-16 text-sm text-muted-foreground bg-card/50 rounded-xl border border-dashed border-border">
+              <div className="flex size-20 items-center justify-center rounded-full bg-muted">
+                <FolderOpen className="size-10 text-muted-foreground/50" />
+              </div>
+              <div className="text-center">
+                <p className="font-semibold text-foreground text-base">Thư mục trống</p>
+                <p className="text-muted-foreground mt-1">Tạo thư mục con hoặc tải file lên đây.</p>
+              </div>
+              <div className="flex gap-2 mt-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handleOpenCreate(currentFolderId)}
-                  className="rounded-[50px]"
+                  className="rounded-[50px] font-semibold"
                 >
-                  <Plus className="mr-1 size-3.5" />
+                  <Plus className="mr-1.5 size-3.5" />
                   Tạo thư mục
                 </Button>
                 <Button
-                  variant="outline"
                   size="sm"
                   onClick={() => fileInputRef.current?.click()}
-                  className="rounded-[50px]"
+                  className="rounded-[50px] font-semibold"
                 >
-                  <Upload className="mr-1 size-3.5" />
+                  <Upload className="mr-1.5 size-3.5" />
                   Tải file lên
                 </Button>
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5">
               {childFolders.map((folder) => {
-                const menuId = `folder-menu-${folder.id}`;
                 return (
-                  <div
+                  <Card
                     key={`folder-${folder.id}`}
-                    className="group relative flex flex-col rounded-xl border border-border bg-card shadow-sm transition-all hover:border-muted-foreground/30 hover:shadow-md"
+                    className="group relative flex flex-col overflow-hidden transition-all hover:shadow-md border-border/50 hover:border-primary/30 cursor-pointer"
+                    onClick={() => setCurrentFolderId(folder.id)}
                   >
-                    <div className="flex items-center justify-between gap-1 px-2 pt-2">
-                      <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
+                    <div className="flex items-center justify-between gap-1 p-3 pb-0">
+                      <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground" title={folder.name}>
                         {folder.name}
                       </span>
-                      <button
-                        type="button"
-                        className="flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-opacity hover:bg-muted group-hover:opacity-100"
-                        aria-label={`Thao tác cho ${folder.name}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const menu = document.getElementById(menuId);
-                          if (menu) {
-                            menu.classList.toggle("hidden");
-                          }
-                        }}
-                      >
-                        <MoreVertical className="size-3.5" />
-                      </button>
-                    </div>
-
-                    <button
-                      type="button"
-                      className="flex flex-1 flex-col items-center justify-center gap-1 px-2 pb-3 pt-4"
-                      onClick={() => setCurrentFolderId(folder.id)}
-                    >
-                      <div className="relative flex size-20 items-center justify-center overflow-visible rounded-xl bg-amber-50 dark:bg-amber-950/30">
-                        <Folder className="absolute inset-0 m-auto w-28 h-28 text-amber-500/80" />
+                      <div className="opacity-0 transition-opacity group-hover:opacity-100" onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "size-7 hover:bg-muted text-muted-foreground")}>
+                            <MoreVertical className="size-3.5" />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-40">
+                            <DropdownMenuItem onClick={() => handleOpenRename(folder)}>
+                              <Pen className="mr-2 size-3.5" />
+                              Đổi tên
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={() => setDeleteTarget(folder)}>
+                              <Trash2 className="mr-2 size-3.5" />
+                              Xóa
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
-                    </button>
-
-                    <div
-                      id={menuId}
-                      className="hidden absolute right-2 top-10 z-50 min-w-[10rem] rounded-xl border border-border bg-popover py-1.5 text-popover-foreground shadow-lg"
-                    >
-                      <button
-                        type="button"
-                        className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm transition-colors hover:bg-muted"
-                        onClick={() => {
-                          document
-                            .getElementById(menuId)
-                            ?.classList.add("hidden");
-                          handleOpenRename(folder);
-                        }}
-                      >
-                        <Pen className="size-3.5" />
-                        Đổi tên
-                      </button>
-                      <button
-                        type="button"
-                        className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-destructive transition-colors hover:bg-destructive/10"
-                        onClick={() => {
-                          document
-                            .getElementById(menuId)
-                            ?.classList.add("hidden");
-                          setDeleteTarget(folder);
-                        }}
-                      >
-                        <Trash2 className="size-3.5" />
-                        Xóa
-                      </button>
                     </div>
-                  </div>
+
+                    <CardContent className="flex flex-1 flex-col items-center justify-center p-6">
+                      <Folder className="size-16 text-amber-500/80 transition-transform duration-300 group-hover:scale-110 drop-shadow-sm" />
+                    </CardContent>
+                  </Card>
                 );
               })}
 
               {files.map((file) => {
                 const kind = fileKind(file.mimeType);
-                const menuId = `file-menu-${file.id}`;
                 return (
                   <FileCard
                     key={`file-${file.id}`}
                     file={file}
                     kind={kind}
-                    menuId={menuId}
                     token={token}
                     onView={() => {
                       setStreamTarget(file);

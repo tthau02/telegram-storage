@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text.Json;
 using FluentValidation;
 using TelegramStorage.Application.Common.Models;
@@ -58,6 +58,10 @@ public class ExceptionHandlingMiddleware
                 context,
                 HttpStatusCode.BadRequest,
                 ApiResponse.Fail(ex.Message, (int)HttpStatusCode.BadRequest));
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInformation("Request was canceled (client disconnected).");
         }
         catch (Exception ex)
         {

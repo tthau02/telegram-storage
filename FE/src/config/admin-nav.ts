@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Cloud, FolderOpen, Users } from "lucide-react";
+import { Cloud, FolderOpen, Users, LayoutDashboard } from "lucide-react";
 import { adminRoutes } from "@/config/routes";
 
 /**
@@ -35,7 +35,7 @@ export function filterAdminNavTree(
   tree: readonly AdminNavItem[],
   userPermissions?: readonly string[],
 ): AdminNavItem[] {
-  const set = userPermissions?.length ? new Set(userPermissions) : undefined;
+  const set = userPermissions === undefined ? undefined : new Set(userPermissions);
 
   function filterTree(nodes: readonly AdminNavItem[]): AdminNavItem[] {
     const result: AdminNavItem[] = [];
@@ -71,11 +71,16 @@ export function isAdminNavBranchActive(
 /** Cấu hình menu — nguồn duy nhất cho sidebar admin */
 export const adminNavTree: AdminNavItem[] = [
   {
+    id: "dashboard",
+    label: "Dashboard",
+    href: adminRoutes.home,
+    icon: LayoutDashboard,
+  },
+  {
     id: "cloud",
     label: "Kho file Telegram",
     href: adminRoutes.cloud,
     icon: Cloud,
-    permissions: ["users.read"],
   },
   {
     id: "folders",

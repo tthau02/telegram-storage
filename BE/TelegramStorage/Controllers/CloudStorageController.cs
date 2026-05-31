@@ -231,6 +231,7 @@ public sealed class CloudStorageController : BaseController
 
         Response.Headers.AcceptRanges = "bytes";
         Response.ContentType = plan.ContentType;
+        Response.ContentLength = plan.ContentLength;
         if (plan.IsPartial)
         {
             Response.StatusCode = 206;

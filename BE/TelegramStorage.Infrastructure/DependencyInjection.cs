@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,6 +35,7 @@ public static class DependencyInjection
         services.AddSingleton<IThumbnailService, ThumbnailService>();
         services.AddScoped<ICloudStorageService, CloudStorageService>();
         services.AddScoped<IFolderService, FolderService>();
+        services.AddScoped<IDashboardService, DashboardService>();
 
         services.AddDbContext<TelegramStorageDbContext>((sp, options) =>
         {

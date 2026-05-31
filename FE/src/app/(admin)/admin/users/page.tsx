@@ -19,6 +19,7 @@ import { CreateOrEditUserPanel } from "./create-or-edit-user-panel";
 import { ApiError } from "@/lib/api-client";
 import { toast } from "sonner";
 import { useDeleteUserMutation, useUsersQuery } from "@/hooks/api";
+import { STATIC_USER_ROLES } from "@/constants/static-user-roles";
 import type { User } from "@/types/auth";
 import type { UserSearchParams } from "@/types/users";
 
@@ -104,6 +105,28 @@ export default function AdminUsersPage() {
       sortable: true,
     },
     { id: "email", label: "Email", type: "email", sortable: true },
+    {
+      id: "roles",
+      label: "Vai trò",
+      sortable: false,
+      renderCell: (row) => (
+        <div className="flex flex-wrap gap-1">
+          {row.roles.map((roleName) => {
+            const role = STATIC_USER_ROLES.find(
+              (r) => r.name === roleName,
+            );
+            return (
+              <span
+                key={roleName}
+                className="badge-light-info inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium"
+              >
+                {role?.displayName ?? roleName}
+              </span>
+            );
+          })}
+        </div>
+      ),
+    },
     { id: "phoneNumber", label: "SĐT", type: "text" },
     {
       id: "status",

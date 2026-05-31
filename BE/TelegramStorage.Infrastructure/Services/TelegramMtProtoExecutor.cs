@@ -165,6 +165,11 @@ public sealed class TelegramMtProtoExecutor : IAsyncDisposable
                 return;
             }
 
+            if (_client is not null)
+            {
+                try { await _client.DisposeAsync().ConfigureAwait(false); } catch { }
+            }
+
             _client = new WTelegram.Client(Config);
             await _client.LoginUserIfNeeded().ConfigureAwait(false);
             _targetChannel = null;
@@ -280,62 +285,63 @@ public sealed class TelegramMtProtoExecutor : IAsyncDisposable
         bool precise,
         CancellationToken cancellationToken = default)
     {
+        WTelegram.Client client;
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             await EnsureClientReadyUnlockedAsync(cancellationToken).ConfigureAwait(false);
-            var client = _client!;
-
-            var remaining = length;
-            var pos = offset;
-            long written = 0;
-            while (remaining > 0)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                var cap = Math.Min(remaining, MtProtoMaxFileLimit);
-                var chunk = (int)(cap / MtProtoFileBlock * MtProtoFileBlock);
-                if (chunk == 0)
-                {
-                    chunk = MtProtoFileBlock;
-                }
-
-                var part = await client
-                    .Upload_GetFile(location, pos, chunk, precise: precise, cdn_supported: false)
-                    .ConfigureAwait(false);
-
-                if (part is not Upload_File uf)
-                {
-                    throw new InvalidOperationException($"Unexpected upload.getFile payload: {part?.GetType().Name}");
-                }
-
-                if (uf.bytes is null || uf.bytes.Length == 0)
-                {
-                    throw new EndOfStreamException(
-                        $"Telegram returned EOF before expected length. offset={offset}, requested={length}, written={written}, pos={pos}.");
-                }
-
-                var n = (int)Math.Min(uf.bytes.Length, remaining);
-                if (n == 0)
-                {
-                    throw new EndOfStreamException(
-                        $"Telegram returned no usable bytes for this range. offset={offset}, requested={length}, written={written}, pos={pos}.");
-                }
-
-                await destination.WriteAsync(uf.bytes.AsMemory(0, n), cancellationToken).ConfigureAwait(false);
-                pos += uf.bytes.Length;
-                remaining -= n;
-                written += n;
-            }
-
-            if (written != length)
-            {
-                throw new EndOfStreamException(
-                    $"Telegram stream length mismatch. offset={offset}, requested={length}, written={written}.");
-            }
+            client = _client!;
         }
         finally
         {
             _gate.Release();
+        }
+
+        var remaining = length;
+        var pos = offset;
+        long written = 0;
+        while (remaining > 0)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var cap = Math.Min(remaining, MtProtoMaxFileLimit);
+            var chunk = (int)(cap / MtProtoFileBlock * MtProtoFileBlock);
+            if (chunk == 0)
+            {
+                chunk = MtProtoFileBlock;
+            }
+
+            var part = await client
+                .Upload_GetFile(location, pos, chunk, precise: precise, cdn_supported: false)
+                .ConfigureAwait(false);
+
+            if (part is not Upload_File uf)
+            {
+                throw new InvalidOperationException($"Unexpected upload.getFile payload: {part?.GetType().Name}");
+            }
+
+            if (uf.bytes is null || uf.bytes.Length == 0)
+            {
+                throw new EndOfStreamException(
+                    $"Telegram returned EOF before expected length. offset={offset}, requested={length}, written={written}, pos={pos}.");
+            }
+
+            var n = (int)Math.Min(uf.bytes.Length, remaining);
+            if (n == 0)
+            {
+                throw new EndOfStreamException(
+                    $"Telegram returned no usable bytes for this range. offset={offset}, requested={length}, written={written}, pos={pos}.");
+            }
+
+            await destination.WriteAsync(uf.bytes.AsMemory(0, n), cancellationToken).ConfigureAwait(false);
+            pos += uf.bytes.Length;
+            remaining -= n;
+            written += n;
+        }
+
+        if (written != length)
+        {
+            throw new EndOfStreamException(
+                $"Telegram stream length mismatch. offset={offset}, requested={length}, written={written}.");
         }
     }
 
@@ -371,6 +377,11 @@ public sealed class TelegramMtProtoExecutor : IAsyncDisposable
         if (_client?.User is not null)
         {
             return;
+        }
+
+        if (_client is not null)
+        {
+            try { await _client.DisposeAsync().ConfigureAwait(false); } catch { }
         }
 
         _client = new WTelegram.Client(Config);

@@ -397,56 +397,14 @@ function FilterFieldRow({
       );
     }
 
-    case "daterange": {
-      const raw = values[field.id] as DateRangeFilterValue | undefined;
-      const from = parseIso(raw?.from);
-      const to = parseIso(raw?.to);
-      const selected: DateRange | undefined =
-        from || to
-          ? { from: from ?? undefined, to: to ?? undefined }
-          : undefined;
-      const months = field.numberOfMonths ?? 2;
-      const labelText =
-        from || to
-          ? formatDisplayRange(from, to)
-          : (field.placeholder ?? "Chọn khoảng ngày");
+    case "daterange":
       return (
-        <Field>
-          <FieldLabel>{field.label}</FieldLabel>
-          <FieldContent>
-            <Popover>
-              <PopoverTrigger
-                type="button"
-                className={cn(
-                  buttonVariants({ variant: "outline" }),
-                  "w-full min-w-0 justify-start font-normal",
-                )}
-              >
-                <CalendarIcon className="mr-2 size-4 shrink-0 opacity-70" />
-                <span className="truncate">{labelText}</span>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="range"
-                  locale={vi}
-                  numberOfMonths={months}
-                  selected={selected}
-                  onSelect={(range) => {
-                    patch(field.id, {
-                      from: range?.from?.toISOString(),
-                      to: range?.to?.toISOString(),
-                    });
-                  }}
-                />
-              </PopoverContent>
-            </Popover>
-            {field.description ? (
-              <FieldDescription>{field.description}</FieldDescription>
-            ) : null}
-          </FieldContent>
-        </Field>
+        <DateRangeFilterRow
+          field={field as Extract<TableFilterField, { type: "daterange" }>}
+          values={values}
+          patch={patch}
+        />
       );
-    }
 
     case "action": {
       const variant = field.variant ?? "default";
@@ -486,4 +444,68 @@ function FilterFieldRow({
     default:
       return null;
   }
+}
+
+function DateRangeFilterRow({
+  field,
+  values,
+  patch,
+}: {
+  field: Extract<TableFilterField, { type: "daterange" }>;
+  values: TableFilterValues;
+  patch: Patch;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const raw = values[field.id] as DateRangeFilterValue | undefined;
+  const from = parseIso(raw?.from);
+  const to = parseIso(raw?.to);
+  const selected: DateRange | undefined =
+    from || to
+      ? { from: from ?? undefined, to: to ?? undefined }
+      : undefined;
+  const months = field.numberOfMonths ?? 2;
+  const labelText =
+    from || to
+      ? formatDisplayRange(from, to)
+      : (field.placeholder ?? "Chọn khoảng ngày");
+
+  return (
+    <Field>
+      <FieldLabel>{field.label}</FieldLabel>
+      <FieldContent>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger
+            type="button"
+            className={cn(
+              buttonVariants({ variant: "outline" }),
+              "w-full min-w-0 justify-start font-normal",
+            )}
+          >
+            <CalendarIcon className="mr-2 size-4 shrink-0 opacity-70" />
+            <span className="truncate">{labelText}</span>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="range"
+              locale={vi}
+              numberOfMonths={months}
+              selected={selected}
+              onSelect={(range) => {
+                patch(field.id, {
+                  from: range?.from?.toISOString(),
+                  to: range?.to?.toISOString(),
+                });
+                if (range?.from && range?.to) {
+                  setOpen(false);
+                }
+              }}
+            />
+          </PopoverContent>
+        </Popover>
+        {field.description ? (
+          <FieldDescription>{field.description}</FieldDescription>
+        ) : null}
+      </FieldContent>
+    </Field>
+  );
 }

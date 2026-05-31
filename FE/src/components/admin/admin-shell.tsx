@@ -2,12 +2,17 @@
 
 import * as React from "react";
 import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { AdminHeader } from "@/components/admin/admin-header";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
-import { clientRoutes } from "@/config/routes";
-import { getStoredAccessToken, isAuthExpired } from "@/lib/auth-storage";
+import { adminRoutes, clientRoutes } from "@/config/routes";
+import {
+  getPermissionsFromRoles,
+  getRolesFromToken,
+  getStoredAccessToken,
+  isAuthExpired,
+} from "@/lib/auth-storage";
 import { useAppTheme } from "@/store/hooks";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +21,7 @@ const useIsomorphicLayoutEffect =
 
 function AdminAuthGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [allowed, setAllowed] = React.useState(false);
 
   useIsomorphicLayoutEffect(() => {
@@ -24,8 +30,18 @@ function AdminAuthGate({ children }: { children: React.ReactNode }) {
       router.replace(clientRoutes.login);
       return;
     }
+    const roles = getRolesFromToken();
+    const isAdmin = roles.some((r) => r.toLowerCase() === "admin");
+    if (
+      !isAdmin &&
+      (pathname === adminRoutes.users ||
+        pathname.startsWith(`${adminRoutes.users}/`))
+    ) {
+      router.replace(adminRoutes.home);
+      return;
+    }
     setAllowed(true);
-  }, [router]);
+  }, [router, pathname]);
 
   if (!allowed) {
     return (
@@ -48,6 +64,10 @@ function AdminAuthGate({ children }: { children: React.ReactNode }) {
 
 function AdminShellLayout({ children }: { children: React.ReactNode }) {
   const { theme } = useAppTheme();
+  const permissions = React.useMemo(() => {
+    const roles = getRolesFromToken();
+    return getPermissionsFromRoles(roles);
+  }, []);
 
   /**
    * Drawer / Popover / Select portal vào `document.body`, ngoài cây DOM của shell.
@@ -66,7 +86,7 @@ function AdminShellLayout({ children }: { children: React.ReactNode }) {
         "flex min-h-full min-w-0 flex-1 flex-col bg-neutral-cool text-foreground md:flex-row",
       )}
     >
-      <AdminSidebar />
+      <AdminSidebar userPermissions={permissions} />
       <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-neutral-cool">
         <AdminHeader />
         <div className="flex-1 overflow-auto p-3 md:p-4">{children}</div>
