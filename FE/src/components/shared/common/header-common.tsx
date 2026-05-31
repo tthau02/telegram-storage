@@ -23,6 +23,7 @@ export interface CommonHeaderProps {
   subtitle?: string;
   actions?: CommonHeaderAction[];
   className?: string;
+  children?: React.ReactNode;
 }
 
 function isExternalHref(href: string) {
@@ -51,16 +52,16 @@ const actionVariantClass: Record<
  * Truyền một object props (`CommonHeaderProps`).
  */
 export function CommonHeader(props: CommonHeaderProps) {
-  const { title, subtitle, actions, className } = props;
+  const { title, subtitle, actions, className, children } = props;
 
   return (
     <header
       className={cn(
-        "flex w-full sm:flex-row sm:items-start sm:justify-between sm:gap-4",
+        "flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between",
         className,
       )}
     >
-      <div className="min-w-0 flex-1 flex items-baseline gap-2">
+      <div className="min-w-0 flex-1 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-2">
         <h2
           className={cn(
             "text-base font-semibold tracking-[-0.01em] text-foreground md:text-lg",
@@ -76,9 +77,9 @@ export function CommonHeader(props: CommonHeaderProps) {
         ) : null}
       </div>
 
-      {actions?.length ? (
+      {actions?.length || children ? (
         <div className="flex w-full shrink-0 flex-wrap items-center justify-start gap-4 sm:w-auto sm:justify-end sm:gap-4">
-          {actions.map((action) => {
+          {actions?.map((action) => {
             const v = action.variant ?? "outline";
             const content = (
               <>
@@ -139,6 +140,7 @@ export function CommonHeader(props: CommonHeaderProps) {
               </Button>
             );
           })}
+          {children}
         </div>
       ) : null}
     </header>

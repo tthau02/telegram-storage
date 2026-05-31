@@ -32,6 +32,7 @@ import {
   getStoredUser,
 } from "@/lib/auth-storage";
 import { cn } from "@/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
 
 const menuItemClass =
   "flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm tracking-[-0.01em] text-foreground transition-colors hover:bg-muted active:bg-muted/80";
@@ -66,6 +67,7 @@ function AdminThemeToggle() {
 
 export function AdminHeader() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [menuOpen, setMenuOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -146,6 +148,7 @@ export function AdminHeader() {
       }
     }
     clearAuthStorage();
+    queryClient.clear();
     router.replace(clientRoutes.login);
   }
 

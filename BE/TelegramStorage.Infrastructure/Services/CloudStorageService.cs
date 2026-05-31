@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
+using TelegramStorage.Application.Common.Extensions;
 using TelegramStorage.Application.Common.Models;
 using TelegramStorage.Application.Common.Paging;
 using TelegramStorage.Application.Common.Queryable;
@@ -453,12 +454,12 @@ public sealed class CloudStorageService : ICloudStorageService
 
         if (r.CreatedFrom is { } from)
         {
-            query = query.Where(f => f.CreatedAt >= from);
+            query = query.Where(f => f.CreatedAt >= from.ToStartOfDay());
         }
 
         if (r.CreatedTo is { } to)
         {
-            query = query.Where(f => f.CreatedAt <= to);
+            query = query.Where(f => f.CreatedAt <= to.ToEndOfDay());
         }
 
         if (!string.IsNullOrWhiteSpace(r.SourceUrl))

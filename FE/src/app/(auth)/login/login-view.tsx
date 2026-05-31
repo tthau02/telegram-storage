@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -22,6 +23,7 @@ import { toast } from "sonner";
 
 export function LoginView() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [loginVal, setLoginVal] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
@@ -63,6 +65,7 @@ export function LoginView() {
           setLoginVal("");
           setPassword("");
           setFieldErrors({});
+          queryClient.clear();
           router.replace(clientRoutes.home);
         },
         onError: (err) => {
